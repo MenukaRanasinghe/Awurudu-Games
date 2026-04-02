@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍋 Lemon Spoon Race</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{height:100vh;width:100vw;overflow:hidden;font-family:'Nunito',sans-serif;background:#78350f}
+canvas{display:block;width:100%;height:100%}
+.back{position:fixed;top:12px;left:12px;z-index:100;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:12px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;
+  cursor:pointer;backdrop-filter:blur(6px);text-decoration:none;transition:.2s}
+.back:hover{background:rgba(0,0,0,.6)}
+.overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(10px)}
+.overlay.show{display:flex}
+.card{background:linear-gradient(145deg,#fffbeb,#fef3c7);border:3px solid rgba(217,119,6,.3);border-radius:28px;
+  padding:clamp(20px,4vw,40px);text-align:center;max-width:440px;width:92%;color:#78350f;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.card h2{font-family:'Baloo 2',cursive;font-size:28px;margin:8px 0}
+.card p{font-size:13px;color:#92400e;line-height:1.6}
+.card .big{font-size:56px}
+.btn{font-family:'Nunito',sans-serif;font-weight:700;border:none;border-radius:14px;padding:12px 28px;
+  font-size:15px;cursor:pointer;transition:.2s;margin:6px}
+.btn:hover{transform:scale(1.04)}
+.btn-y{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#78350f}
+.btn-o{background:transparent;border:2px solid rgba(120,53,15,.3);color:#92400e}
+.sb{text-align:left;margin-top:16px;background:rgba(120,53,15,.08);border-radius:14px;padding:14px}
+.sb h4{font-size:11px;color:#b45309;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700}
+.sb-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(120,53,15,.08);font-size:14px}
+.sb-row .n{font-weight:700;color:#78350f}
+.sb-row .s{font-family:'Baloo 2',cursive;color:#d97706}
+.sb-row.elim{opacity:.45;text-decoration:line-through}
+.confetti{position:fixed;z-index:55;pointer-events:none;animation:cfall var(--f,3s) ease-in forwards}
+@keyframes cfall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(var(--r,720deg))}}
+.keys-help{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:10;
+  background:rgba(0,0,0,.4);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;padding:8px 18px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.kh{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.7);font-weight:700}
+.kh .k{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:6px;font-family:'Baloo 2',cursive;font-size:14px;color:#fff}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Home</a>
+<canvas id="c"></canvas>
+<div class="keys-help" id="keysHelp"></div>
+<div class="overlay" id="overlay"><div class="card" id="card"></div></div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const players=JSON.parse(sessionStorage.getItem('players')||'[]');
+if(players.length<2){document.getElementById('card').innerHTML=`<div class="big">⚠️</div><h2>Need Players!</h2><p>Go back to dashboard and add at least 2 players.</p><a href="index.html" class="btn btn-y">← Dashboard</a>`;document.getElementById('overlay').classList.add('show')}
+
+// Constants
+const FINISH=0.92, TRACK_SPEED=0.018, WOBBLE_FORCE=2.8, TAP_FORCE=3.5, GRAVITY=4.5;
+const COLORS=['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16'];
+
+let state='waiting'; // waiting, racing, finished
+let racers=[];
+let finishOrder=[];
+let elimOrder=[];
+
+function initRacers(){
+  racers=players.map((p,i)=>({
+    name:p.name, key:p.key, color:COLORS[i%COLORS.length],
+    x:0.04, balance:0, balVel:0,
+    alive:true, finished:false, finishTime:0,
+    wobbleTimer:1.5+Math.random()*2, legPhase:Math.random()*Math.PI*2,
+    runBob:0
+  }));
+  finishOrder=[];elimOrder=[];
+}
+
+// Keys help
+function showKeysHelp(){
+  document.getElementById('keysHelp').innerHTML=players.map((p,i)=>
+    `<div class="kh"><span class="k">${p.key}</span>${p.name}</div>`).join('');
+}
+
+// Resize
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+window.addEventListener('resize',resize);resize();
+
+// Key handling
+const keysDown=new Set();
+document.addEventListener('keydown',e=>{
+  const k=e.key.toUpperCase();
+  if(state==='waiting'&&k===' '){startRace();return}
+  if(state==='racing'){
+    const r=racers.find(r=>r.key===k&&r.alive&&!r.finished);
+    if(r&&!keysDown.has(k)){
+      // Tap nudges balance toward center
+      r.balVel+=(r.balance>0?-TAP_FORCE:TAP_FORCE);
+      // Small speed boost per tap
+      r.x+=0.003;
+    }
+    keysDown.add(k);
+  }
+});
+document.addEventListener('keyup',e=>keysDown.delete(e.key.toUpperCase()));
+
+function startRace(){
+  state='racing';
+  document.getElementById('overlay').classList.remove('show');
+  raceStartTime=performance.now();
+}
+
+let raceStartTime=0;
+
+// Show start screen
+function showStartScreen(){
+  initRacers();showKeysHelp();
+  const card=document.getElementById('card');
+  card.innerHTML=`
+    <div class="big">🍋</div>
+    <h2>Lemon Spoon Race!</h2>
+    <p>Tap your assigned key to balance the lemon and run forward!<br>
+    Too much tilt = lemon drops = you're OUT!<br>First to the finish line wins!</p>
+    <div style="margin:14px 0;font-size:13px;color:#b45309">
+      ${players.map(p=>`<b>${p.key}</b> → ${p.name}`).join(' &nbsp;·&nbsp; ')}
+    </div>
+    <button class="btn btn-y" onclick="startRace()">🏁 Start Race!</button>
+    <p style="font-size:11px;color:#ccc;margin-top:8px">or press SPACE</p>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+// Main loop
+let lastT=performance.now();
+function loop(){
+  const now=performance.now(),dt=Math.min((now-lastT)/1000,0.05);lastT=now;
+  
+  if(state==='racing') update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function update(dt){
+  const elapsed=(performance.now()-raceStartTime)/1000;
+  let aliveCount=0;
+  
+  racers.forEach(r=>{
+    if(!r.alive||r.finished)return;
+    aliveCount++;
+    
+    // Auto forward movement (slow)
+    r.x+=TRACK_SPEED*dt;
+    r.legPhase+=dt*8;
+    r.runBob=Math.sin(r.legPhase)*3;
+    
+    // Wobble timer — periodic random pushes
+    r.wobbleTimer-=dt;
+    if(r.wobbleTimer<=0){
+      r.balVel+=(Math.random()-.5)*WOBBLE_FORCE*2;
+      r.wobbleTimer=1.2+Math.random()*2.5;
+    }
+    
+    // Balance physics
+    r.balVel+=r.balance*GRAVITY*dt; // gravity pulls toward tilt direction
+    r.balance+=r.balVel*dt;
+    r.balVel*=0.96; // damping
+    
+    // Check elimination (balance threshold ±1.0)
+    if(Math.abs(r.balance)>1.0){
+      r.alive=false;
+      elimOrder.push({name:r.name,time:elapsed});
+    }
+    
+    // Check finish
+    if(r.x>=FINISH){
+      r.finished=true;r.x=FINISH;
+      r.finishTime=elapsed;
+      finishOrder.push({name:r.name,time:elapsed});
+    }
+  });
+  
+  // Check game end
+  const stillRacing=racers.filter(r=>r.alive&&!r.finished);
+  if(stillRacing.length===0||(finishOrder.length>0&&stillRacing.length<=0)){
+    state='finished';
+    // Add remaining alive as finished in place
+    racers.forEach(r=>{
+      if(r.alive&&!r.finished){
+        r.finished=true;r.finishTime=(performance.now()-raceStartTime)/1000;
+        finishOrder.push({name:r.name,time:r.finishTime});
+      }
+    });
+    setTimeout(showResults,600);
+  }
+  // If only 1 left and some finished, end
+  if(finishOrder.length+elimOrder.length>=racers.length){
+    if(state==='racing'){state='finished';setTimeout(showResults,600)}
+  }
+}
+
+function draw(){
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,'#87CEEB');sky.addColorStop(0.35,'#bae6fd');sky.addColorStop(0.4,'#7cc56a');sky.addColorStop(1,'#4a7c20');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+  
+  // Clouds
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  [[w*.15,h*.08,40],[w*.45,h*.05,30],[w*.75,h*.1,35],[w*.9,h*.06,25]].forEach(([x,y,s])=>{
+    ctx.beginPath();ctx.arc(x,y,s,0,Math.PI*2);ctx.arc(x+s*.8,y-s*.2,s*.7,0,Math.PI*2);
+    ctx.arc(x+s*1.4,y,s*.6,0,Math.PI*2);ctx.fill();
+  });
+  
+  // Sun
+  ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.arc(w-80,60,35,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(251,191,36,0.2)';ctx.beginPath();ctx.arc(w-80,60,55,0,Math.PI*2);ctx.fill();
+  
+  const lanes=racers.length;
+  const laneH=Math.min(90,((h*0.55)/lanes));
+  const trackTop=h*0.22;
+  const trackLeft=w*0.06;
+  const trackRight=w*0.94;
+  const trackW=trackRight-trackLeft;
+  
+  // Track background
+  ctx.fillStyle='rgba(139,69,19,0.15)';
+  ctx.fillRect(trackLeft-10,trackTop-10,trackW+20,laneH*lanes+20);
+  
+  // Finish line
+  const fx=trackLeft+FINISH*trackW;
+  ctx.strokeStyle='#dc2626';ctx.lineWidth=3;ctx.setLineDash([8,4]);
+  ctx.beginPath();ctx.moveTo(fx,trackTop-10);ctx.lineTo(fx,trackTop+laneH*lanes+10);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#dc2626';ctx.font="bold 12px 'Nunito'";ctx.textAlign='center';
+  ctx.fillText('🏁 FINISH',fx,trackTop-15);
+  
+  // Draw each racer lane
+  racers.forEach((r,i)=>{
+    const ly=trackTop+i*laneH;
+    const rx=trackLeft+r.x*trackW;
+    
+    // Lane stripe
+    ctx.fillStyle=i%2===0?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)';
+    ctx.fillRect(trackLeft,ly,trackW,laneH);
+    
+    // Lane border
+    ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(trackLeft,ly+laneH);ctx.lineTo(trackRight,ly+laneH);ctx.stroke();
+    
+    // Progress bar
+    ctx.fillStyle=r.alive?r.color+'40':'rgba(255,0,0,0.1)';
+    ctx.fillRect(trackLeft,ly+laneH-4,r.x*trackW,4);
+    
+    // Player name + key
+    ctx.font="bold 11px 'Nunito'";ctx.textAlign='left';
+    ctx.fillStyle=r.alive?'#fff':'rgba(255,255,255,0.3)';
+    ctx.fillText(`[${r.key}] ${r.name}`,trackLeft+4,ly+14);
+    
+    if(!r.alive){
+      // Eliminated X
+      ctx.font="bold 24px 'Baloo 2'";ctx.textAlign='center';
+      ctx.fillStyle='rgba(239,68,68,0.6)';
+      ctx.fillText('💥',rx,ly+laneH/2+8);
+      return;
+    }
+    if(r.finished){
+      ctx.font="bold 20px 'Baloo 2'";ctx.textAlign='center';
+      ctx.fillStyle='#fbbf24';
+      const rank=finishOrder.findIndex(f=>f.name===r.name);
+      ctx.fillText(rank===0?'🏆':'✅',fx+20,ly+laneH/2+8);
+    }
+    
+    const cy=ly+laneH/2+6+r.runBob;
+    
+    // Character body
+    ctx.fillStyle=r.color;
+    ctx.beginPath();ctx.arc(rx,cy-12,10,0,Math.PI*2);ctx.fill(); // head
+    ctx.fillRect(rx-6,cy-2,12,16); // body
+    
+    // Eyes
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(rx-3,cy-14,3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(rx+3,cy-14,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#000';
+    ctx.beginPath();ctx.arc(rx-2.5,cy-14,1.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(rx+3.5,cy-14,1.5,0,Math.PI*2);ctx.fill();
+    
+    // Legs (running animation)
+    ctx.strokeStyle=r.color;ctx.lineWidth=3;ctx.lineCap='round';
+    const legOff=Math.sin(r.legPhase)*6;
+    ctx.beginPath();ctx.moveTo(rx-2,cy+14);ctx.lineTo(rx-2+legOff,cy+24);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(rx+2,cy+14);ctx.lineTo(rx+2-legOff,cy+24);ctx.stroke();
+    
+    // Arm holding spoon (extends right)
+    ctx.strokeStyle=r.color;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(rx+6,cy+2);ctx.lineTo(rx+22,cy-4);ctx.stroke();
+    
+    // Spoon
+    const spAngle=r.balance*35*Math.PI/180; // visual tilt
+    ctx.save();
+    ctx.translate(rx+22,cy-4);
+    ctx.rotate(spAngle);
+    
+    // Spoon handle
+    ctx.fillStyle='#d4d4d4';ctx.strokeStyle='#aaa';ctx.lineWidth=1.5;
+    ctx.fillRect(-2,-2,4,18);
+    // Spoon bowl
+    ctx.fillStyle='#e8e8e8';
+    ctx.beginPath();ctx.ellipse(0,-10,12,6,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#bbb';ctx.stroke();
+    
+    // Lemon
+    const lemonGrad=ctx.createRadialGradient(-2,-13,1,0,-12,8);
+    lemonGrad.addColorStop(0,'#fff44f');lemonGrad.addColorStop(0.6,'#fbbf24');lemonGrad.addColorStop(1,'#d97706');
+    ctx.fillStyle=lemonGrad;
+    ctx.beginPath();ctx.ellipse(0,-16,8,6.5,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#b45309';ctx.lineWidth=1;ctx.stroke();
+    // Leaf
+    ctx.fillStyle='#16a34a';
+    ctx.beginPath();ctx.ellipse(1,-23,3,1.5,0.4,0,Math.PI*2);ctx.fill();
+    
+    ctx.restore();
+    
+    // Balance meter (small bar above character)
+    const meterW=30,meterH=4;
+    const mx2=rx-meterW/2,my2=ly+4;
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.fillRect(mx2,my2,meterW,meterH);
+    // Balance indicator
+    const bx=mx2+meterW/2+r.balance*(meterW/2);
+    const danger=Math.abs(r.balance);
+    ctx.fillStyle=danger>0.7?'#ef4444':danger>0.4?'#f59e0b':'#22c55e';
+    ctx.fillRect(bx-2,my2-1,4,meterH+2);
+    // Center marker
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillRect(mx2+meterW/2-0.5,my2,1,meterH);
+  });
+  
+  // Title HUD
+  ctx.font="bold 16px 'Baloo 2'";ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.fillText('🍋 LEMON SPOON RACE',w/2,28);
+  
+  if(state==='racing'){
+    const elapsed=((performance.now()-raceStartTime)/1000).toFixed(1);
+    ctx.font="bold 13px 'Nunito'";ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.fillText(elapsed+'s',w/2,48);
+  }
+  
+  if(state==='waiting'){
+    ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(0,0,w,h);
+  }
+}
+
+function showResults(){
+  const all=[...finishOrder.map((f,i)=>({...f,status:'🏁',rank:i+1})),
+    ...elimOrder.map(e=>({...e,status:'💥',rank:99}))];
+  all.sort((a,b)=>a.rank===99&&b.rank===99?a.time-b.time:a.rank-b.rank);
+  
+  const winner=finishOrder[0]||{name:'—'};
+  const card=document.getElementById('card');
+  card.innerHTML=`
+    <div class="big">🏆</div>
+    <h2>${winner.name} Wins!</h2>
+    <p>Crossed the finish line in ${winner.time?winner.time.toFixed(2)+'s':'—'}!</p>
+    <div class="sb"><h4>Race Results</h4>
+      ${all.map((r,i)=>`<div class="sb-row ${r.rank===99?'elim':''}">
+        <span class="n">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${r.status} ${r.name}</span>
+        <span class="s">${r.rank===99?'Dropped! ('+r.time.toFixed(2)+'s)':r.time.toFixed(2)+'s'}</span>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn btn-y" onclick="replay()">🔄 Race Again</button>
+      <a href="index.html" class="btn btn-o" style="text-decoration:none;display:inline-block">Home</a>
+    </div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+  confetti();
+}
+
+function replay(){
+  state='waiting';
+  document.getElementById('overlay').classList.remove('show');
+  showStartScreen();
+}
+
+function confetti(){
+  const c=['#fbbf24','#f472b6','#34d399','#3b82f6','#ef4444','#a78bfa'];
+  for(let i=0;i<40;i++){const d=document.createElement('div');d.className='confetti';const s=Math.random()*8+4;
+    Object.assign(d.style,{width:s+'px',height:s*(Math.random()>.5?1:.5)+'px',background:c[~~(Math.random()*c.length)],
+      left:Math.random()*100+'vw',top:'-10px',borderRadius:Math.random()>.5?'50%':'2px',
+      '--f':(2+Math.random()*2)+'s','--r':(360+Math.random()*720)+'deg',animationDelay:Math.random()*.5+'s'});
+    document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}
+}
+
+// Init
+if(players.length>=2) showStartScreen();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

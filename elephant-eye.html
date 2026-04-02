@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐘 Elephant Eye Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Quicksand',sans-serif;overflow:hidden;height:100vh;width:100vw;cursor:none;
+  user-select:none;background:linear-gradient(180deg,#87CEEB 0%,#b0e0ff 40%,#7cc56a 40%,#5aad3c 100%)}
+.back{position:fixed;top:14px;left:14px;z-index:100;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:12px;padding:8px 16px;font-family:'Quicksand',sans-serif;font-weight:700;font-size:13px;
+  cursor:pointer;backdrop-filter:blur(6px);text-decoration:none;transition:.2s}
+.back:hover{background:rgba(0,0,0,.5)}
+.cloud{position:fixed;z-index:0;pointer-events:none;opacity:.9}
+.cloud div{position:absolute;background:#fff;border-radius:50%}
+.sun{position:fixed;top:30px;right:60px;z-index:0;width:70px;height:70px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,#fff455,#ffcc00,#ff9900);box-shadow:0 0 40px rgba(255,200,0,.5)}
+.header{position:relative;z-index:10;text-align:center;padding:12px 20px 4px}
+.header h1{font-family:'Baloo 2',cursive;font-size:clamp(22px,4vw,34px);font-weight:800;color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.25)}
+.header .sub{font-size:clamp(11px,2vw,14px);color:rgba(255,255,255,.85);font-weight:600}
+.hud{position:relative;z-index:10;display:flex;justify-content:center;gap:clamp(8px,2vw,20px);padding:6px 20px;flex-wrap:wrap}
+.hud-item{background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.4);border-radius:16px;
+  padding:4px 16px;text-align:center;backdrop-filter:blur(8px);min-width:80px}
+.hud-label{font-size:9px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+.hud-value{font-family:'Baloo 2',cursive;font-size:20px;color:#fff;font-weight:700;line-height:1.2}
+.game{position:relative;z-index:5;width:100%;height:calc(100vh - 130px);overflow:hidden}
+.elephant-wrap{position:absolute;will-change:transform;filter:drop-shadow(0 8px 20px rgba(0,0,0,.2))}
+.eye-socket{position:absolute;width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(ellipse at 35% 35%,#fff,#e8eef5 70%,#d0d8e5);border:2.5px solid #888;
+  overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.2)}
+.eye-socket.left{top:88px;left:100px}
+.eye-socket.right{top:88px;left:170px}
+.iris-fixed{position:absolute;width:26px;height:26px;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;background:radial-gradient(circle at 40% 35%,#5bc0eb,#2196F3,#1565C0);box-shadow:0 0 4px rgba(0,0,0,.3)}
+.iris-fixed::after{content:'';position:absolute;width:13px;height:13px;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;background:#111}
+.iris-fixed::before{content:'';position:absolute;width:5px;height:5px;top:28%;left:58%;border-radius:50%;
+  background:rgba(255,255,255,.85);z-index:2}
+.eyelid{position:absolute;width:100%;height:0%;top:0;background:linear-gradient(180deg,#a0a8b0,#909aa5);
+  border-bottom:2px solid #777;border-radius:0 0 50% 50%;transition:.15s ease;z-index:3}
+.blink .eyelid{height:100%}
+.cursor-pupil{position:fixed;z-index:100;pointer-events:none;width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#5bc0eb,#2196F3,#1565C0);
+  box-shadow:0 0 8px rgba(33,150,243,.5),0 0 20px rgba(33,150,243,.25);transform:translate(-50%,-50%);transition:box-shadow .2s}
+.cursor-pupil::after{content:'';position:absolute;width:13px;height:13px;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;background:#111}
+.cursor-pupil::before{content:'';position:absolute;width:5px;height:5px;top:26%;left:56%;border-radius:50%;
+  background:rgba(255,255,255,.85);z-index:2}
+.cursor-pupil.near{box-shadow:0 0 8px rgba(33,150,243,.6),0 0 25px rgba(251,191,36,.5),0 0 40px rgba(251,191,36,.2)}
+.cursor-pupil.placed{display:none}
+.placed-iris{position:absolute;width:26px;height:26px;border-radius:50%;z-index:1;
+  background:radial-gradient(circle at 40% 35%,#5bc0eb,#2196F3,#1565C0);box-shadow:0 0 4px rgba(0,0,0,.3);
+  transform:translate(-50%,-50%)}
+.placed-iris::after{content:'';position:absolute;width:13px;height:13px;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;background:#111}
+.placed-iris::before{content:'';position:absolute;width:5px;height:5px;top:28%;left:58%;border-radius:50%;
+  background:rgba(255,255,255,.8);z-index:2}
+.popup{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(10px)}
+.popup.show{display:flex}
+.card{background:linear-gradient(145deg,#fff,#f0f8ff);border:3px solid rgba(33,150,243,.3);border-radius:28px;
+  padding:clamp(20px,4vw,36px);text-align:center;max-width:340px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);animation:popIn .4s cubic-bezier(.175,.885,.32,1.275);color:#333}
+@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.card .emoji{font-size:52px;margin-bottom:6px}
+.card .grade{font-family:'Baloo 2',cursive;font-size:44px;font-weight:800;line-height:1}
+.card .al{font-size:12px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.card .px{font-family:'Baloo 2',cursive;font-size:16px;color:#2196F3;margin-top:6px}
+.card .dt{font-size:13px;color:#666;margin-top:10px}
+.btn{font-family:'Quicksand',sans-serif;font-weight:700;border:none;border-radius:16px;padding:12px 30px;
+  font-size:15px;cursor:pointer;margin-top:16px;transition:.2s}
+.btn-p{background:linear-gradient(135deg,#4CAF50,#2196F3);color:#fff;box-shadow:0 4px 15px rgba(33,150,243,.35)}
+.btn-p:hover{transform:scale(1.05)}
+.tip{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;font-size:12px;color:#fff;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:6px 16px;
+  backdrop-filter:blur(6px);animation:fadeUp .8s .5s both}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.confetti{position:fixed;z-index:55;pointer-events:none;animation:cfall var(--f,3s) ease-in forwards}
+@keyframes cfall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(var(--r,720deg))}}
+</style>
+</head>
+<body>
+<a class="back" href="index.html" style="cursor:pointer">← Home</a>
+<div class="sun"></div>
+<div class="header">
+  <h1>🐘 Elephant Eye Challenge 👁️</h1>
+  <div class="sub">Place the eye perfectly — precision wins!</div>
+</div>
+<div class="hud">
+  <div class="hud-item"><div class="hud-label">Round</div><div class="hud-value" id="rnd">1 / 5</div></div>
+  <div class="hud-item"><div class="hud-label">Best</div><div class="hud-value" id="bst">—</div></div>
+  <div class="hud-item"><div class="hud-label">Avg</div><div class="hud-value" id="avg">—</div></div>
+</div>
+<div class="game" id="game">
+  <div class="elephant-wrap" id="ew">
+    <svg viewBox="0 0 310 280" width="300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bG" cx="50%" cy="38%"><stop offset="0%" stop-color="#c8d0da"/><stop offset="100%" stop-color="#9aa5b3"/></radialGradient>
+        <radialGradient id="hG" cx="45%" cy="35%"><stop offset="0%" stop-color="#d0d8e2"/><stop offset="100%" stop-color="#a8b2c0"/></radialGradient>
+        <radialGradient id="eI" cx="50%" cy="50%"><stop offset="0%" stop-color="#f0c0d0"/><stop offset="100%" stop-color="#d0a0b5"/></radialGradient>
+        <radialGradient id="eO" cx="50%" cy="50%"><stop offset="0%" stop-color="#b8c2d0"/><stop offset="100%" stop-color="#8a95a5"/></radialGradient>
+      </defs>
+      <ellipse cx="62" cy="110" rx="58" ry="65" fill="url(#eO)" stroke="#7a8590" stroke-width="1.5"/>
+      <ellipse cx="62" cy="112" rx="40" ry="48" fill="url(#eI)" opacity=".65"/>
+      <ellipse cx="248" cy="110" rx="58" ry="65" fill="url(#eO)" stroke="#7a8590" stroke-width="1.5"/>
+      <ellipse cx="248" cy="112" rx="40" ry="48" fill="url(#eI)" opacity=".65"/>
+      <ellipse cx="155" cy="200" rx="82" ry="62" fill="url(#bG)" stroke="#8a95a5" stroke-width="1"/>
+      <rect x="90" y="230" width="32" height="42" rx="14" fill="#a5afbd"/><ellipse cx="106" cy="272" rx="18" ry="7" fill="#8a95a5"/>
+      <rect x="188" y="230" width="32" height="42" rx="14" fill="#a5afbd"/><ellipse cx="204" cy="272" rx="18" ry="7" fill="#8a95a5"/>
+      <ellipse cx="155" cy="108" rx="78" ry="75" fill="url(#hG)" stroke="#8a95a5" stroke-width="1"/>
+      <ellipse cx="155" cy="40" rx="22" ry="12" fill="#bcc5d2"/>
+      <path d="M105 78Q122 68 140 76" stroke="#8090a0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M170 76Q188 68 205 78" stroke="#8090a0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M155 135Q155 158 148 175Q138 198 125 212Q115 225 105 228Q95 230 98 222Q100 215 110 210Q125 198 132 180Q140 162 142 145" fill="#b0b8c5" stroke="#8a95a5" stroke-width="2"/>
+      <ellipse cx="100" cy="225" rx="6" ry="4" fill="#8a95a5"/><ellipse cx="112" cy="225" rx="6" ry="4" fill="#8a95a5"/>
+      <path d="M128 148Q120 168 125 180" stroke="#f8f2e8" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M182 148Q190 168 185 180" stroke="#f8f2e8" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <ellipse cx="90" cy="125" rx="16" ry="10" fill="#f5a0b5" opacity=".3"/>
+      <ellipse cx="220" cy="125" rx="16" ry="10" fill="#f5a0b5" opacity=".3"/>
+      <path d="M140 150Q155 160 170 150" stroke="#7a8494" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M236 195Q255 180 258 162Q260 150 255 145" stroke="#9aa5b3" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="254" cy="142" rx="6" ry="8" fill="#8a95a5" transform="rotate(-10,254,142)"/>
+    </svg>
+    <div class="eye-socket left" id="eL"><div class="eyelid"></div></div>
+    <div class="eye-socket right" id="eR"><div class="iris-fixed"></div><div class="eyelid"></div></div>
+  </div>
+</div>
+<div class="tip" id="tip">💡 Watch the pattern — the elephant's path is predictable!</div>
+<div class="cursor-pupil" id="cur"></div>
+<div class="popup" id="pop">
+  <div class="card">
+    <div class="emoji" id="pE">🎯</div>
+    <div class="grade" id="pG">98%</div>
+    <div class="al">Accuracy</div>
+    <div class="px" id="pP">2px off</div>
+    <div class="dt" id="pD">Great!</div>
+    <button class="btn btn-p" id="pB">Next →</button>
+  </div>
+</div>
+<script>
+const game=document.getElementById('game'),ew=document.getElementById('ew'),eL=document.getElementById('eL'),eR=document.getElementById('eR');
+const cur=document.getElementById('cur'),pop=document.getElementById('pop'),tip=document.getElementById('tip');
+let round=1,max=5,scores=[],placed=false,time=0,pt=0;
+const P=[(t,w,h)=>({x:w/2+Math.sin(t*.8)*w*.3,y:h/2+Math.cos(t*.6)*h*.26}),
+  (t,w,h)=>({x:w/2+Math.sin(t*.7)*w*.33,y:h/2+Math.sin(t*1.4)*h*.2}),
+  (t,w,h)=>({x:w/2+Math.cos(t*.5)*w*.36,y:h/2+Math.sin(t*.5)*h*.26}),
+  (t,w,h)=>({x:w/2+Math.sin(t*.9)*w*.28,y:h/2+Math.sin(t*.6)*h*.23}),
+  (t,w,h)=>{const s=Math.sin(t*.6),c=Math.cos(t*.6);return{x:w/2+16*s*s*s*w*.015,y:h/2-(13*c-5*Math.cos(1.2*t)-2*Math.cos(1.8*t)-Math.cos(2.4*t))*h*.015}}];
+function spd(){return .55+(round-1)*.2}
+function ml(){if(!placed){time+=.016*spd();const g=game.offsetWidth,h=game.offsetHeight,p=170;
+  const r=P[pt](time,g-p*2,h-p);ew.style.transform=`translate(${p/2+Math.max(0,Math.min(g-p*2,r.x))}px,${10+Math.max(0,Math.min(h-p,r.y))}px)`}
+  requestAnimationFrame(ml)}
+setInterval(()=>{if(!placed){eL.classList.add('blink');eR.classList.add('blink');
+  setTimeout(()=>{eL.classList.remove('blink');eR.classList.remove('blink')},180)}},3200);
+let mx=0,my=0;
+function mv(e){const cx=e.clientX??e.touches?.[0]?.clientX??mx,cy=e.clientY??e.touches?.[0]?.clientY??my;
+  mx=cx;my=cy;cur.style.left=cx+'px';cur.style.top=cy+'px';
+  const r=eL.getBoundingClientRect();cur.classList.toggle('near',Math.hypot(cx-r.left-r.width/2,cy-r.top-r.height/2)<55)}
+document.addEventListener('mousemove',mv);document.addEventListener('touchmove',e=>{e.preventDefault();mv(e)},{passive:false});
+function place(e){if(placed)return;const cx=e.clientX??e.changedTouches?.[0]?.clientX??mx,cy=e.clientY??e.changedTouches?.[0]?.clientY??my;
+  const r=eL.getBoundingClientRect(),d=Math.hypot(cx-r.left-r.width/2,cy-r.top-r.height/2);if(d>65)return;
+  placed=true;cur.classList.add('placed');const dot=document.createElement('div');dot.className='placed-iris';
+  dot.style.left=(cx-r.left)+'px';dot.style.top=(cy-r.top)+'px';eL.appendChild(dot);
+  const a=Math.max(0,Math.min(100,(1-d/20)*100));scores.push({a,d});setTimeout(()=>show(a,d),400)}
+document.addEventListener('click',place);document.addEventListener('touchend',place);
+function show(a,d){const e=document.getElementById('pE'),g=document.getElementById('pG'),p=document.getElementById('pP'),dt=document.getElementById('pD'),b=document.getElementById('pB');
+  if(a>=95){e.textContent='🎯';g.style.color='#4CAF50';dt.textContent='Surgical precision!';}
+  else if(a>=80){e.textContent='🌟';g.style.color='#FF9800';dt.textContent='Almost perfect!';}
+  else if(a>=60){e.textContent='👏';g.style.color='#2196F3';dt.textContent='Good shot!';}
+  else if(a>=30){e.textContent='😅';g.style.color='#9C27B0';dt.textContent='Study the pattern!';}
+  else{e.textContent='🙈';g.style.color='#f44336';dt.textContent='Way off!';}
+  g.textContent=a.toFixed(1)+'%';p.textContent=d.toFixed(1)+' px off';
+  b.textContent=round>=max?'🏆 Results':'Next →';b.onclick=round>=max?fin:nxt;
+  pop.classList.add('show');updH();if(a>=80)confetti();if(a>=95)confetti()}
+function fin(){const av=scores.reduce((s,r)=>s+r.a,0)/scores.length,bs=Math.max(...scores.map(r=>r.a));
+  let rk,cl;if(av>=90){rk='S';cl='#FFD700'}else if(av>=75){rk='A';cl='#4CAF50'}else if(av>=60){rk='B';cl='#2196F3'}else{rk='C';cl='#f87171'}
+  document.getElementById('pE').textContent='🏆';const g=document.getElementById('pG');g.textContent='Rank: '+rk;g.style.color=cl;
+  document.getElementById('pP').textContent='Avg: '+av.toFixed(1)+'% · Best: '+bs.toFixed(1)+'%';
+  document.getElementById('pD').textContent=av>=75?'You mastered it!':'Try again!';
+  const b=document.getElementById('pB');b.textContent='🔄 Replay';b.onclick=reset;confetti()}
+function nxt(){round++;placed=false;pop.classList.remove('show');cur.classList.remove('placed');
+  const p=eL.querySelector('.placed-iris');if(p)p.remove();pt=(pt+1)%P.length;time=0;updH()}
+function reset(){round=1;scores=[];placed=false;pop.classList.remove('show');cur.classList.remove('placed');
+  const p=eL.querySelector('.placed-iris');if(p)p.remove();pt=0;time=0;updH()}
+function updH(){document.getElementById('rnd').textContent=round+' / '+max;
+  if(scores.length){document.getElementById('bst').textContent=Math.max(...scores.map(r=>r.a)).toFixed(0)+'%';
+    document.getElementById('avg').textContent=(scores.reduce((s,r)=>s+r.a,0)/scores.length).toFixed(0)+'%'}}
+function confetti(){const c=['#fbbf24','#f472b6','#4CAF50','#2196F3','#f87171'];
+  for(let i=0;i<35;i++){const d=document.createElement('div');d.className='confetti';const s=Math.random()*8+4;
+    Object.assign(d.style,{width:s+'px',height:s*(Math.random()>.5?1:.5)+'px',background:c[~~(Math.random()*c.length)],
+      left:Math.random()*100+'vw',top:'-10px',borderRadius:Math.random()>.5?'50%':'2px',
+      '--f':(2+Math.random()*2)+'s','--r':(360+Math.random()*720)+'deg',animationDelay:Math.random()*.5+'s'});
+    document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}}
+// Clouds
+[{x:8,y:6,s:1},{x:35,y:2,s:.7},{x:60,y:10,s:.85},{x:78,y:4,s:.6}].forEach(c=>{
+  const el=document.createElement('div');el.className='cloud';el.style.left=c.x+'%';el.style.top=c.y+'%';
+  [[0,0,50*c.s,40*c.s],[30*c.s,-10*c.s,60*c.s,48*c.s],[65*c.s,0,45*c.s,36*c.s]].forEach(([l,t,w,h])=>{
+    const p=document.createElement('div');Object.assign(p.style,{left:l+'px',top:t+'px',width:w+'px',height:h+'px'});el.appendChild(p)});
+  document.body.appendChild(el)});
+setTimeout(()=>{tip.style.opacity='0';tip.style.transition='opacity 1s'},5000);
+requestAnimationFrame(ml);updH();
+</script>
+</body>
+</html>
