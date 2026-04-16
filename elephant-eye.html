@@ -966,6 +966,9 @@
       }
     }
 
+    // ---------- FIREBASE CONFIG ----------
+    var FB_URL = 'https://awurudu-games-default-rtdb.firebaseio.com';
+
     // ---------- PLAYER NAME & STORAGE ----------
     var currentPlayer = '';
     var nameInput = document.getElementById('playerName');
@@ -986,65 +989,49 @@
 
     function saveScore(accuracy) {
       if (!currentPlayer) return;
-      try {
-        var allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-        var key = currentPlayer.toLowerCase().replace(/\s+/g, '_');
-        var prev = allScores[key] || { name: currentPlayer, ee_best: 0, ee_plays: 0, km_wins: 0, km_plays: 0 };
-        prev.ee_plays = (prev.ee_plays || 0) + 1;
-        var roundedAcc = Math.round(accuracy);
-        if (roundedAcc > (prev.ee_best || 0)) prev.ee_best = roundedAcc;
-        prev.name = currentPlayer;
-        prev.updated = Date.now();
-        allScores[key] = prev;
-        localStorage.setItem('nygames_scores', JSON.stringify(allScores));
-      } catch (e) { console.log('Storage error:', e); }
-    }
+      var key = currentPlayer.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      var roundedAcc = Math.round(accuracy);
 
-    function getShareCode() {
-      try {
-        var allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-        return btoa(JSON.stringify(allScores));
-      } catch (e) { return ''; }
+      // Read existing, then update
+      fetch(FB_URL + '/scores/' + key + '.json')
+        .then(function (r) { return r.json(); })
+        .then(function (prev) {
+          prev = prev || { name: currentPlayer, ee_best: 0, ee_plays: 0, km_wins: 0, km_plays: 0 };
+          prev.ee_plays = (prev.ee_plays || 0) + 1;
+          if (roundedAcc > (prev.ee_best || 0)) prev.ee_best = roundedAcc;
+          prev.name = currentPlayer;
+          prev.updated = Date.now();
+          return fetch(FB_URL + '/scores/' + key + '.json', {
+            method: 'PUT',
+            body: JSON.stringify(prev)
+          });
+        })
+        .then(function () { showLeaderboard(); })
+        .catch(function (e) { console.log('Firebase save error:', e); });
     }
 
     function showLeaderboard() {
       var lb = document.getElementById('leaderboard');
-      try {
-        var allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-        var players = Object.values(allScores).filter(function (p) { return p.ee_plays > 0; });
-        if (players.length === 0) { lb.innerHTML = ''; return; }
-        players.sort(function (a, b) { return (b.ee_best || 0) - (a.ee_best || 0); });
-        var medals = ['🥇', '🥈', '🥉'];
-        var html = '<h4>🏆 Scoreboard</h4>';
-        players.forEach(function (p, idx) {
-          var isYou = p.name.toLowerCase() === currentPlayer.toLowerCase();
-          html += '<div class="lb-row' + (isYou ? ' lb-you' : '') + '">';
-          html += '<span class="lb-rank">' + (medals[idx] || (idx + 1)) + '</span>';
-          html += '<span class="lb-name">' + p.name + (isYou ? ' (you)' : '') + '</span>';
-          html += '<span class="lb-score">Best: ' + (p.ee_best || 0) + '%</span>';
-          html += '</div>';
-        });
-        // Add share code button
-        html += '<div style="margin-top:12px;text-align:center">';
-        html += '<button onclick="copyShareCode()" style="font-family:Quicksand,sans-serif;font-weight:700;border:2px solid rgba(76,175,80,.4);background:rgba(76,175,80,.1);color:#4CAF50;border-radius:10px;padding:6px 16px;font-size:12px;cursor:pointer">📋 Copy Score Code</button>';
-        html += '<div id="copyMsg" style="font-size:11px;color:#4CAF50;margin-top:4px;display:none">Copied! Share this code with friends</div>';
-        html += '</div>';
-        lb.innerHTML = html;
-      } catch (e) {
-        lb.innerHTML = '';
-      }
-    }
-
-    function copyShareCode() {
-      var code = getShareCode();
-      if (code) {
-        navigator.clipboard.writeText(code).then(function () {
-          document.getElementById('copyMsg').style.display = 'block';
-          setTimeout(function () { document.getElementById('copyMsg').style.display = 'none'; }, 3000);
-        }).catch(function () {
-          prompt('Copy this score code:', code);
-        });
-      }
+      fetch(FB_URL + '/scores.json')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data) { lb.innerHTML = ''; return; }
+          var players = Object.values(data).filter(function (p) { return (p.ee_plays || 0) > 0; });
+          if (players.length === 0) { lb.innerHTML = ''; return; }
+          players.sort(function (a, b) { return (b.ee_best || 0) - (a.ee_best || 0); });
+          var medals = ['🥇', '🥈', '🥉'];
+          var html = '<h4>🏆 Scoreboard</h4>';
+          players.forEach(function (p, idx) {
+            var isYou = p.name && currentPlayer && p.name.toLowerCase() === currentPlayer.toLowerCase();
+            html += '<div class="lb-row' + (isYou ? ' lb-you' : '') + '">';
+            html += '<span class="lb-rank">' + (medals[idx] || (idx + 1)) + '</span>';
+            html += '<span class="lb-name">' + (p.name || '?') + (isYou ? ' (you)' : '') + '</span>';
+            html += '<span class="lb-score">Best: ' + (p.ee_best || 0) + '%</span>';
+            html += '</div>';
+          });
+          lb.innerHTML = html;
+        })
+        .catch(function (e) { lb.innerHTML = ''; console.log('Leaderboard error:', e); });
     }
 
     setTimeout(function () { tip.style.opacity = '0'; tip.style.transition = 'opacity 1s' }, 5000);

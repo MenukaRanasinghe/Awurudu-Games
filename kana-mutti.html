@@ -1205,6 +1205,9 @@
             swingStick(e.clientX, e.clientY, null);
         });
 
+        // ---------- FIREBASE CONFIG ----------
+        const FB_URL = 'https://awurudu-games-default-rtdb.firebaseio.com';
+
         // ---------- PLAYER NAME & STORAGE ----------
         let currentPlayer = '';
         const nameInput = document.getElementById('playerName');
@@ -1225,64 +1228,47 @@
 
         function saveScore(won) {
             if (!currentPlayer) return;
-            try {
-                const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-                const key = currentPlayer.toLowerCase().replace(/\s+/g, '_');
-                const prev = allScores[key] || { name: currentPlayer, ee_best: 0, ee_plays: 0, km_wins: 0, km_plays: 0 };
-                prev.km_plays = (prev.km_plays || 0) + 1;
-                if (won) prev.km_wins = (prev.km_wins || 0) + 1;
-                prev.name = currentPlayer;
-                prev.updated = Date.now();
-                allScores[key] = prev;
-                localStorage.setItem('nygames_scores', JSON.stringify(allScores));
-            } catch (e) { console.log('Storage error:', e); }
-        }
+            const key = currentPlayer.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
-        function getShareCode() {
-            try {
-                const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-                return btoa(JSON.stringify(allScores));
-            } catch (e) { return ''; }
+            fetch(FB_URL + '/scores/' + key + '.json')
+                .then(r => r.json())
+                .then(prev => {
+                    prev = prev || { name: currentPlayer, ee_best: 0, ee_plays: 0, km_wins: 0, km_plays: 0 };
+                    prev.km_plays = (prev.km_plays || 0) + 1;
+                    if (won) prev.km_wins = (prev.km_wins || 0) + 1;
+                    prev.name = currentPlayer;
+                    prev.updated = Date.now();
+                    return fetch(FB_URL + '/scores/' + key + '.json', {
+                        method: 'PUT',
+                        body: JSON.stringify(prev)
+                    });
+                })
+                .then(() => { showLeaderboard(); })
+                .catch(e => { console.log('Firebase save error:', e); });
         }
 
         function showLeaderboard() {
             const lb = document.getElementById('leaderboard');
-            try {
-                const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-                const players = Object.values(allScores).filter(p => p.km_plays > 0);
-                if (players.length === 0) { lb.innerHTML = ''; return; }
-                players.sort((a, b) => (b.km_wins || 0) - (a.km_wins || 0));
-                const medals = ['🥇', '🥈', '🥉'];
-                let html = '<h4>🏆 Scoreboard</h4>';
-                players.forEach((p, i) => {
-                    const isYou = p.name.toLowerCase() === currentPlayer.toLowerCase();
-                    html += '<div class="lb-row' + (isYou ? ' lb-you' : '') + '">';
-                    html += '<span class="lb-rank">' + (medals[i] || (i + 1)) + '</span>';
-                    html += '<span class="lb-name">' + p.name + (isYou ? ' (you)' : '') + '</span>';
-                    html += '<span class="lb-score">' + (p.km_wins || 0) + '/' + (p.km_plays || 0) + ' wins</span>';
-                    html += '</div>';
-                });
-                // Share code button
-                html += '<div style="margin-top:12px;text-align:center">';
-                html += '<button onclick="copyShareCode()" style="font-family:Quicksand,sans-serif;font-weight:700;border:2px solid rgba(217,120,39,.4);background:rgba(217,120,39,.1);color:#d97827;border-radius:10px;padding:6px 16px;font-size:12px;cursor:pointer">📋 Copy Score Code</button>';
-                html += '<div id="copyMsg" style="font-size:11px;color:#d97827;margin-top:4px;display:none">Copied! Share this code with friends</div>';
-                html += '</div>';
-                lb.innerHTML = html;
-            } catch (e) {
-                lb.innerHTML = '';
-            }
-        }
-
-        function copyShareCode() {
-            const code = getShareCode();
-            if (code) {
-                navigator.clipboard.writeText(code).then(() => {
-                    document.getElementById('copyMsg').style.display = 'block';
-                    setTimeout(() => { document.getElementById('copyMsg').style.display = 'none'; }, 3000);
-                }).catch(() => {
-                    prompt('Copy this score code:', code);
-                });
-            }
+            fetch(FB_URL + '/scores.json')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data) { lb.innerHTML = ''; return; }
+                    const players = Object.values(data).filter(p => (p.km_plays || 0) > 0);
+                    if (players.length === 0) { lb.innerHTML = ''; return; }
+                    players.sort((a, b) => (b.km_wins || 0) - (a.km_wins || 0));
+                    const medals = ['🥇', '🥈', '🥉'];
+                    let html = '<h4>🏆 Scoreboard</h4>';
+                    players.forEach((p, i) => {
+                        const isYou = p.name && currentPlayer && p.name.toLowerCase() === currentPlayer.toLowerCase();
+                        html += '<div class="lb-row' + (isYou ? ' lb-you' : '') + '">';
+                        html += '<span class="lb-rank">' + (medals[i] || (i + 1)) + '</span>';
+                        html += '<span class="lb-name">' + (p.name || '?') + (isYou ? ' (you)' : '') + '</span>';
+                        html += '<span class="lb-score">' + (p.km_wins || 0) + '/' + (p.km_plays || 0) + ' wins</span>';
+                        html += '</div>';
+                    });
+                    lb.innerHTML = html;
+                })
+                .catch(e => { lb.innerHTML = ''; console.log('Leaderboard error:', e); });
         }
 
         setTimeout(() => {

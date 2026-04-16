@@ -372,16 +372,8 @@
       </div>
       <div id="scoreBoard"></div>
 
-      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-        <div style="font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:8px">📥 Import a friend's scores
-        </div>
-        <div style="display:flex;gap:8px">
-          <input type="text" id="codeInput" placeholder="Paste score code here..."
-            style="flex:1;min-width:0;padding:10px 14px;border-radius:12px;border:2px solid var(--border);background:rgba(0,0,0,.3);color:#fff;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
-          <button class="btn btn-y" onclick="importCode()" style="padding:10px 20px;font-size:13px">Import</button>
-        </div>
-        <div id="importMsg" style="font-size:11px;margin-top:6px;display:none"></div>
-      </div>
+      <button class="btn btn-y" onclick="loadScores()"
+        style="margin-top:14px;width:100%;text-align:center;padding:10px">🔄 Refresh Scores</button>
     </div>
 
     <div class="games">
@@ -426,6 +418,8 @@
   </div>
 
   <script>
+    var FB_URL = 'https://awurudu-games-default-rtdb.firebaseio.com';
+
     function go(url) { window.location.href = url; }
 
     // ---------- SCOREBOARD ----------
@@ -435,121 +429,68 @@
       activeTab = tab;
       document.querySelectorAll('.score-tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
-      renderBoard();
+      loadScores();
     }
 
-    function renderBoard() {
+    function loadScores() {
       const board = document.getElementById('scoreBoard');
-      try {
-        const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-        const players = Object.values(allScores);
+      board.innerHTML = '<div class="score-loading">Loading scores...</div>';
 
-        let filtered;
-        if (activeTab === 'ee') {
-          filtered = players.filter(p => (p.ee_plays || 0) > 0);
-          filtered.sort((a, b) => (b.ee_best || 0) - (a.ee_best || 0));
-        } else {
-          filtered = players.filter(p => (p.km_plays || 0) > 0);
-          filtered.sort((a, b) => (b.km_wins || 0) - (a.km_wins || 0));
-        }
-
-        if (filtered.length === 0) {
-          board.innerHTML = '<div class="score-empty">No scores yet — play a game first! 🎮</div>';
-          return;
-        }
-
-        const medals = ['🥇', '🥈', '🥉'];
-        let html = '';
-        filtered.forEach((p, i) => {
-          const scoreClass = activeTab === 'ee' ? 'sb-score-ee' : 'sb-score-km';
-          const scoreText = activeTab === 'ee'
-            ? 'Best: ' + (p.ee_best || 0) + '%'
-            : (p.km_wins || 0) + '/' + (p.km_plays || 0) + ' wins';
-          const playsText = activeTab === 'ee'
-            ? (p.ee_plays || 0) + ' play' + ((p.ee_plays || 0) !== 1 ? 's' : '')
-            : '';
-
-          html += '<div class="sb-row">';
-          html += '<span class="sb-rank">' + (medals[i] || '#' + (i + 1)) + '</span>';
-          html += '<span class="sb-name">' + (p.name || 'Unknown') + '</span>';
-          html += '<span class="sb-score ' + scoreClass + '">' + scoreText + '</span>';
-          if (playsText) html += '<span class="sb-plays">' + playsText + '</span>';
-          html += '</div>';
-        });
-
-        // Copy own code button
-        html += '<div style="margin-top:14px;text-align:center">';
-        html += '<button onclick="copyMyCode()" style="font-family:Nunito,sans-serif;font-weight:700;border:2px solid var(--border);background:rgba(251,191,36,.08);color:var(--yellow);border-radius:10px;padding:8px 20px;font-size:12px;cursor:pointer;transition:.2s">📋 Copy My Score Code to Share</button>';
-        html += '<div id="copyMsg" style="font-size:11px;color:var(--green);margin-top:6px;display:none">✅ Copied! Send this to your friends</div>';
-        html += '</div>';
-
-        board.innerHTML = html;
-      } catch (e) {
-        board.innerHTML = '<div class="score-empty">No scores yet — play a game first! 🎮</div>';
-      }
-    }
-
-    function copyMyCode() {
-      try {
-        const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-        if (Object.keys(allScores).length === 0) { alert('No scores to share yet! Play a game first.'); return; }
-        const code = btoa(unescape(encodeURIComponent(JSON.stringify(allScores))));
-        navigator.clipboard.writeText(code).then(() => {
-          const msg = document.getElementById('copyMsg');
-          msg.style.display = 'block';
-          setTimeout(() => msg.style.display = 'none', 4000);
-        }).catch(() => {
-          prompt('Copy this score code and send to friends:', code);
-        });
-      } catch (e) { alert('Error creating code'); }
-    }
-
-    function importCode() {
-      const input = document.getElementById('codeInput');
-      const msg = document.getElementById('importMsg');
-      const code = input.value.trim();
-      if (!code) { showMsg(msg, '⚠️ Paste a score code first!', 'var(--red)'); return; }
-
-      try {
-        const incoming = JSON.parse(decodeURIComponent(escape(atob(code))));
-        const existing = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
-        let added = 0;
-
-        for (const [key, val] of Object.entries(incoming)) {
-          if (!val || !val.name) continue;
-          const prev = existing[key];
-          if (!prev) {
-            existing[key] = val;
-            added++;
-          } else {
-            // Merge: keep best scores
-            let changed = false;
-            if ((val.ee_best || 0) > (prev.ee_best || 0)) { prev.ee_best = val.ee_best; changed = true; }
-            if ((val.ee_plays || 0) > (prev.ee_plays || 0)) { prev.ee_plays = val.ee_plays; changed = true; }
-            if ((val.km_wins || 0) > (prev.km_wins || 0)) { prev.km_wins = val.km_wins; changed = true; }
-            if ((val.km_plays || 0) > (prev.km_plays || 0)) { prev.km_plays = val.km_plays; changed = true; }
-            if (changed) added++;
+      fetch(FB_URL + '/scores.json')
+        .then(r => r.json())
+        .then(data => {
+          if (!data) {
+            board.innerHTML = '<div class="score-empty">No scores yet — play a game first! 🎮</div>';
+            return;
           }
-        }
 
-        localStorage.setItem('nygames_scores', JSON.stringify(existing));
-        input.value = '';
-        showMsg(msg, '✅ Imported! ' + added + ' player(s) updated', 'var(--green)');
-        renderBoard();
-      } catch (e) {
-        showMsg(msg, '❌ Invalid code — check and try again', 'var(--red)');
-      }
-    }
+          const players = Object.values(data);
+          let filtered;
+          if (activeTab === 'ee') {
+            filtered = players.filter(p => (p.ee_plays || 0) > 0);
+            filtered.sort((a, b) => (b.ee_best || 0) - (a.ee_best || 0));
+          } else {
+            filtered = players.filter(p => (p.km_plays || 0) > 0);
+            filtered.sort((a, b) => (b.km_wins || 0) - (a.km_wins || 0));
+          }
 
-    function showMsg(el, text, color) {
-      el.textContent = text;
-      el.style.color = color;
-      el.style.display = 'block';
-      setTimeout(() => el.style.display = 'none', 4000);
+          if (filtered.length === 0) {
+            board.innerHTML = '<div class="score-empty">No scores yet for this game — be the first! 🎮</div>';
+            return;
+          }
+
+          const medals = ['🥇', '🥈', '🥉'];
+          let html = '';
+          filtered.forEach((p, i) => {
+            const scoreClass = activeTab === 'ee' ? 'sb-score-ee' : 'sb-score-km';
+            const scoreText = activeTab === 'ee'
+              ? 'Best: ' + (p.ee_best || 0) + '%'
+              : (p.km_wins || 0) + '/' + (p.km_plays || 0) + ' wins';
+            const playsText = activeTab === 'ee'
+              ? (p.ee_plays || 0) + ' play' + ((p.ee_plays || 0) !== 1 ? 's' : '')
+              : '';
+
+            html += '<div class="sb-row">';
+            html += '<span class="sb-rank">' + (medals[i] || '#' + (i + 1)) + '</span>';
+            html += '<span class="sb-name">' + (p.name || 'Unknown') + '</span>';
+            html += '<span class="sb-score ' + scoreClass + '">' + scoreText + '</span>';
+            if (playsText) html += '<span class="sb-plays">' + playsText + '</span>';
+            html += '</div>';
+          });
+
+          board.innerHTML = html;
+        })
+        .catch(e => {
+          board.innerHTML = '<div class="score-empty">Could not connect — check your internet 📡</div>';
+          console.log('Firebase load error:', e);
+        });
     }
 
     // Load on page open
-    renderBoard();
+    loadScores();
+
+    // Auto-refresh every 8 seconds
+    setInterval(loadScores, 8000);
 
     // BG particles
     const bg = document.getElementById('bgParticles');
