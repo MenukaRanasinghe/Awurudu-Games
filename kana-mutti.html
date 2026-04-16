@@ -196,12 +196,6 @@
             animation: shake .35s ease-in-out
         }
 
-        /* Winning pot gets a subtle heavier swing — the toffee's weight! */
-        .pot-hanger.winner {
-            animation: sway-heavy var(--dur-heavy, 2.1s) ease-in-out infinite;
-            animation-delay: var(--delay, 0s);
-        }
-
         @keyframes sway {
 
             0%,
@@ -211,18 +205,6 @@
 
             50% {
                 transform: rotate(calc(var(--amp, 8) * 1deg))
-            }
-        }
-
-        @keyframes sway-heavy {
-
-            0%,
-            100% {
-                transform: rotate(calc(var(--amp-heavy, 6) * -1deg)) translateY(0px);
-            }
-
-            50% {
-                transform: rotate(calc(var(--amp-heavy, 6) * 1deg)) translateY(2px);
             }
         }
 
@@ -621,6 +603,91 @@
                 height: 13px;
             }
         }
+
+        /* ---------- INSTRUCTIONS OVERLAY ---------- */
+        .instructions-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .6);
+            backdrop-filter: blur(8px);
+        }
+
+        .instructions-overlay.hidden {
+            display: none
+        }
+
+        .instructions-card {
+            background: linear-gradient(145deg, #fffaf0, #fff3e0);
+            border: 3px solid rgba(217, 120, 39, .4);
+            border-radius: 28px;
+            padding: clamp(24px, 4vw, 40px);
+            text-align: center;
+            max-width: 420px;
+            width: 92%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+            animation: popIn .4s cubic-bezier(.175, .885, .32, 1.275);
+            color: #333;
+        }
+
+        .instructions-card .inst-icon {
+            font-size: 64px;
+            margin-bottom: 8px
+        }
+
+        .instructions-card h2 {
+            font-family: 'Baloo 2', cursive;
+            font-size: 28px;
+            font-weight: 800;
+            color: #d97827;
+            margin-bottom: 12px;
+        }
+
+        .instructions-card .inst-step {
+            text-align: left;
+            margin: 10px 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .instructions-card .inst-step span {
+            display: inline-block;
+            background: #d97827;
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            line-height: 26px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 800;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .btn-start {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 40px;
+            font-size: 17px;
+            cursor: pointer;
+            margin-top: 18px;
+            transition: .2s;
+            background: linear-gradient(135deg, #d97827, #ffa94d);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(217, 120, 39, .4);
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05)
+        }
     </style>
 </head>
 
@@ -656,7 +723,20 @@
         <div class="stick-tip"></div>
     </div>
 
-    <div class="tip" id="tip">💡 The toffee makes one pot swing a little heavier... watch closely!</div>
+    <div class="tip" id="tip">💡 Trust your gut — pick a pot and smash it!</div>
+
+    <!-- Instructions Overlay -->
+    <div class="instructions-overlay" id="instrOverlay">
+        <div class="instructions-card">
+            <div class="inst-icon">🏺</div>
+            <h2>How to Play</h2>
+            <div class="inst-step"><span>1</span> There are 7 clay pots hanging from a beam</div>
+            <div class="inst-step"><span>2</span> Only ONE pot hides a toffee 🍬 inside</div>
+            <div class="inst-step"><span>3</span> Move your stick and click a pot to smash it</div>
+            <div class="inst-step"><span>4</span> You only get ONE chance — choose wisely!</div>
+            <button class="btn-start" id="startBtn">🏏 Let's Play!</button>
+        </div>
+    </div>
 
     <div class="popup" id="pop">
         <div class="card">
@@ -779,13 +859,6 @@
                 el.style.setProperty('--amp', p.amp);
                 el.style.setProperty('--dur', p.dur + 's');
                 el.style.setProperty('--delay', p.delay + 's');
-
-                // Subtle "heavier" hint for the winning pot
-                if (i === winnerIdx) {
-                    el.classList.add('winner');
-                    el.style.setProperty('--amp-heavy', p.amp * 0.6);          // swings less
-                    el.style.setProperty('--dur-heavy', (p.dur * 1.4) + 's');  // swings slower
-                }
 
                 el.innerHTML = potSVG(i);
                 el.dataset.idx = i;
@@ -949,7 +1022,7 @@
                 e.textContent = '😅';
                 t.textContent = 'Wrong Pot!';
                 t.style.color = '#c62828';
-                dt.textContent = 'The toffee was in a different pot. Watch for the one that swings a bit heavier next round!';
+                dt.textContent = 'The toffee was in a different pot. Better luck next time!';
             }
             setTimeout(() => pop.classList.add('show'), 400);
         }
@@ -1028,6 +1101,11 @@
                 e.target.closest('.back') || e.target.closest('.popup')) return;
             swingStick(e.clientX, e.clientY, null);
         });
+
+        // ---------- INSTRUCTIONS ----------
+        document.getElementById('startBtn').onclick = () => {
+            document.getElementById('instrOverlay').classList.add('hidden');
+        };
 
         setTimeout(() => {
             document.getElementById('tip').style.opacity = '0';
