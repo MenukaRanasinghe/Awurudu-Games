@@ -688,6 +688,103 @@
         .btn-start:hover {
             transform: scale(1.05)
         }
+
+        .btn-start:disabled {
+            opacity: .4;
+            transform: none;
+            cursor: not-allowed
+        }
+
+        .name-input-wrap {
+            margin-top: 16px;
+            display: flex;
+            gap: 0;
+            border: 2px solid rgba(217, 120, 39, .4);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .name-input-wrap input {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+            color: #333;
+            min-width: 0;
+        }
+
+        .name-input-wrap input::placeholder {
+            color: #bbb
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            margin-top: 16px;
+            text-align: left;
+            max-height: 180px;
+            overflow-y: auto
+        }
+
+        .leaderboard h4 {
+            font-family: 'Baloo 2', cursive;
+            font-size: 16px;
+            color: #d97827;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .lb-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .lb-row:nth-child(2) {
+            background: rgba(255, 215, 0, .15)
+        }
+
+        .lb-row:nth-child(3) {
+            background: rgba(192, 192, 192, .12)
+        }
+
+        .lb-row:nth-child(4) {
+            background: rgba(205, 127, 50, .1)
+        }
+
+        .lb-rank {
+            width: 22px;
+            text-align: center;
+            font-size: 15px
+        }
+
+        .lb-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .lb-score {
+            background: linear-gradient(135deg, #d97827, #ffa94d);
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .lb-you {
+            outline: 2px solid #d97827;
+            outline-offset: 1px
+        }
     </style>
 </head>
 
@@ -734,7 +831,10 @@
             <div class="inst-step"><span>2</span> Only ONE pot hides a toffee 🍬 inside</div>
             <div class="inst-step"><span>3</span> Move your stick and click a pot to smash it</div>
             <div class="inst-step"><span>4</span> You only get ONE chance — choose wisely!</div>
-            <button class="btn-start" id="startBtn">🏏 Let's Play!</button>
+            <div class="name-input-wrap">
+                <input type="text" id="playerName" placeholder="Enter your name..." maxlength="15" autocomplete="off">
+            </div>
+            <button class="btn-start" id="startBtn" disabled>🏏 Let's Play!</button>
         </div>
     </div>
 
@@ -745,6 +845,7 @@
             <div class="dt" id="pD">You found the toffee!</div>
             <button class="btn btn-p" id="pBtryAgain">🔄 Try Again</button>
             <button class="btn btn-s" id="pBhome">🏠 Home</button>
+            <div class="leaderboard" id="leaderboard"></div>
         </div>
     </div>
 
@@ -1007,6 +1108,7 @@
         }
 
         function showResult(won) {
+            saveScore(won);
             const pop = document.getElementById('pop');
             const e = document.getElementById('pE'),
                 t = document.getElementById('pT'),
@@ -1025,6 +1127,7 @@
                 dt.textContent = 'The toffee was in a different pot. Better luck next time!';
             }
             setTimeout(() => pop.classList.add('show'), 400);
+            showLeaderboard();
         }
 
         document.getElementById('pBtryAgain').onclick = () => {
@@ -1102,10 +1205,85 @@
             swingStick(e.clientX, e.clientY, null);
         });
 
-        // ---------- INSTRUCTIONS ----------
-        document.getElementById('startBtn').onclick = () => {
+        // ---------- PLAYER NAME & STORAGE ----------
+        let currentPlayer = '';
+        const nameInput = document.getElementById('playerName');
+        const startBtnEl = document.getElementById('startBtn');
+
+        nameInput.addEventListener('input', () => {
+            startBtnEl.disabled = !nameInput.value.trim();
+        });
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && nameInput.value.trim()) startBtnEl.click();
+        });
+
+        startBtnEl.onclick = () => {
+            currentPlayer = nameInput.value.trim();
+            if (!currentPlayer) return;
             document.getElementById('instrOverlay').classList.add('hidden');
         };
+
+        function saveScore(won) {
+            if (!currentPlayer) return;
+            try {
+                const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
+                const key = currentPlayer.toLowerCase().replace(/\s+/g, '_');
+                const prev = allScores[key] || { name: currentPlayer, ee_best: 0, ee_plays: 0, km_wins: 0, km_plays: 0 };
+                prev.km_plays = (prev.km_plays || 0) + 1;
+                if (won) prev.km_wins = (prev.km_wins || 0) + 1;
+                prev.name = currentPlayer;
+                prev.updated = Date.now();
+                allScores[key] = prev;
+                localStorage.setItem('nygames_scores', JSON.stringify(allScores));
+            } catch (e) { console.log('Storage error:', e); }
+        }
+
+        function getShareCode() {
+            try {
+                const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
+                return btoa(JSON.stringify(allScores));
+            } catch (e) { return ''; }
+        }
+
+        function showLeaderboard() {
+            const lb = document.getElementById('leaderboard');
+            try {
+                const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
+                const players = Object.values(allScores).filter(p => p.km_plays > 0);
+                if (players.length === 0) { lb.innerHTML = ''; return; }
+                players.sort((a, b) => (b.km_wins || 0) - (a.km_wins || 0));
+                const medals = ['🥇', '🥈', '🥉'];
+                let html = '<h4>🏆 Scoreboard</h4>';
+                players.forEach((p, i) => {
+                    const isYou = p.name.toLowerCase() === currentPlayer.toLowerCase();
+                    html += '<div class="lb-row' + (isYou ? ' lb-you' : '') + '">';
+                    html += '<span class="lb-rank">' + (medals[i] || (i + 1)) + '</span>';
+                    html += '<span class="lb-name">' + p.name + (isYou ? ' (you)' : '') + '</span>';
+                    html += '<span class="lb-score">' + (p.km_wins || 0) + '/' + (p.km_plays || 0) + ' wins</span>';
+                    html += '</div>';
+                });
+                // Share code button
+                html += '<div style="margin-top:12px;text-align:center">';
+                html += '<button onclick="copyShareCode()" style="font-family:Quicksand,sans-serif;font-weight:700;border:2px solid rgba(217,120,39,.4);background:rgba(217,120,39,.1);color:#d97827;border-radius:10px;padding:6px 16px;font-size:12px;cursor:pointer">📋 Copy Score Code</button>';
+                html += '<div id="copyMsg" style="font-size:11px;color:#d97827;margin-top:4px;display:none">Copied! Share this code with friends</div>';
+                html += '</div>';
+                lb.innerHTML = html;
+            } catch (e) {
+                lb.innerHTML = '';
+            }
+        }
+
+        function copyShareCode() {
+            const code = getShareCode();
+            if (code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    document.getElementById('copyMsg').style.display = 'block';
+                    setTimeout(() => { document.getElementById('copyMsg').style.display = 'none'; }, 3000);
+                }).catch(() => {
+                    prompt('Copy this score code:', code);
+                });
+            }
+        }
 
         setTimeout(() => {
             document.getElementById('tip').style.opacity = '0';

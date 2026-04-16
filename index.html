@@ -106,32 +106,7 @@
       font-family: 'Baloo 2', cursive;
       font-size: 20px;
       color: var(--yellow);
-      margin-bottom: 14px
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap
-    }
-
-    .row input {
-      flex: 1;
-      min-width: 160px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: rgba(0, 0, 0, .3);
-      color: #fff;
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      outline: none;
-      transition: .2s
-    }
-
-    .row input:focus {
-      border-color: var(--yellow)
+      margin-bottom: 6px
     }
 
     .btn {
@@ -153,67 +128,6 @@
     .btn-y {
       background: linear-gradient(135deg, var(--yellow), #fb923c);
       color: #1a1040
-    }
-
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px
-    }
-
-    .tag {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, rgba(251, 191, 36, .12), rgba(244, 114, 182, .12));
-      border: 1px solid rgba(251, 191, 36, .25);
-      border-radius: 12px;
-      padding: 7px 14px;
-      font-size: 14px;
-      font-weight: 700;
-      animation: tagIn .3s cubic-bezier(.175, .885, .32, 1.275)
-    }
-
-    @keyframes tagIn {
-      from {
-        opacity: 0;
-        transform: scale(.7)
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1)
-      }
-    }
-
-    .tag .kb {
-      background: var(--yellow);
-      color: #000;
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 800;
-      font-family: 'Baloo 2', cursive
-    }
-
-    .tag .x {
-      cursor: pointer;
-      opacity: .4;
-      font-size: 18px;
-      transition: .2s
-    }
-
-    .tag .x:hover {
-      opacity: 1;
-      color: var(--red)
-    }
-
-    .min-warn {
-      color: var(--red);
-      font-size: 12px;
-      margin-top: 8px;
-      display: none;
-      font-weight: 600
     }
 
     /* Game grid */
@@ -307,6 +221,130 @@
       transform: translateX(4px)
     }
 
+    /* Scoreboard */
+    .score-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px
+    }
+
+    .score-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap
+    }
+
+    .score-tab {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: .2s
+    }
+
+    .score-tab.active {
+      border-color: var(--yellow);
+      color: var(--yellow);
+      background: rgba(251, 191, 36, .1)
+    }
+
+    .score-tab:hover {
+      border-color: var(--yellow);
+      color: var(--text)
+    }
+
+    #scoreBoard {
+      min-height: 60px
+    }
+
+    .score-loading {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 20px 0
+    }
+
+    .score-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 20px 0
+    }
+
+    .sb-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      transition: .2s;
+      background: rgba(255, 255, 255, .02)
+    }
+
+    .sb-row:nth-child(1) {
+      background: linear-gradient(135deg, rgba(255, 215, 0, .12), rgba(251, 191, 36, .06));
+      border: 1px solid rgba(255, 215, 0, .2)
+    }
+
+    .sb-row:nth-child(2) {
+      background: linear-gradient(135deg, rgba(192, 192, 192, .08), rgba(192, 192, 192, .03));
+      border: 1px solid rgba(192, 192, 192, .15)
+    }
+
+    .sb-row:nth-child(3) {
+      background: linear-gradient(135deg, rgba(205, 127, 50, .08), rgba(205, 127, 50, .03));
+      border: 1px solid rgba(205, 127, 50, .15)
+    }
+
+    .sb-rank {
+      width: 28px;
+      text-align: center;
+      font-size: 18px;
+      flex-shrink: 0
+    }
+
+    .sb-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text)
+    }
+
+    .sb-score {
+      padding: 4px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0
+    }
+
+    .sb-score-ee {
+      background: linear-gradient(135deg, rgba(56, 189, 248, .2), rgba(52, 211, 153, .2));
+      color: var(--blue)
+    }
+
+    .sb-score-km {
+      background: linear-gradient(135deg, rgba(251, 191, 36, .2), rgba(251, 146, 60, .2));
+      color: var(--yellow)
+    }
+
+    .sb-plays {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      flex-shrink: 0
+    }
+
     /* Footer */
     .footer {
       text-align: center;
@@ -322,17 +360,28 @@
   <div class="wrap">
     <div class="header">
       <h1>New Year Games 🎉</h1>
-      <p>Add your team, pick a game, and let the fun begin!</p>
+      <p>Pick a game and enter your name — scores sync across all devices!</p>
     </div>
 
-    <div class="panel">
-      <h3>👥 Team Members</h3>
-      <div class="row">
-        <input type="text" id="nameIn" placeholder="Type a player name..." maxlength="12">
-        <button class="btn btn-y" onclick="addP()">+ Add Player</button>
+    <div class="panel" id="scorePanel">
+      <h3>🏆 Scoreboard</h3>
+      <div class="score-hint">Play a game, then share your score code with friends!</div>
+      <div class="score-tabs">
+        <button class="score-tab active" onclick="showTab('ee', this)">🐘 Elephant Eye</button>
+        <button class="score-tab" onclick="showTab('km', this)">🏺 Kana Mutti</button>
       </div>
-      <div class="tags" id="tags"></div>
-      <div class="min-warn" id="warn">⚠ Add at least 2 players for team games!</div>
+      <div id="scoreBoard"></div>
+
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:8px">📥 Import a friend's scores
+        </div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="codeInput" placeholder="Paste score code here..."
+            style="flex:1;min-width:0;padding:10px 14px;border-radius:12px;border:2px solid var(--border);background:rgba(0,0,0,.3);color:#fff;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
+          <button class="btn btn-y" onclick="importCode()" style="padding:10px 20px;font-size:13px">Import</button>
+        </div>
+        <div id="importMsg" style="font-size:11px;margin-top:6px;display:none"></div>
+      </div>
     </div>
 
     <div class="games">
@@ -377,31 +426,130 @@
   </div>
 
   <script>
-    const KEYS = 'QWERASDFZXCV'.split('');
-    let players = JSON.parse(sessionStorage.getItem('players') || '[]');
-    const inp = document.getElementById('nameIn');
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') addP() });
-    render();
+    function go(url) { window.location.href = url; }
 
-    function addP() {
-      const n = inp.value.trim();
-      if (!n || players.length >= 10 || players.find(p => p.name.toLowerCase() === n.toLowerCase())) return;
-      players.push({ name: n, key: KEYS[players.length] || String(players.length + 1) });
-      inp.value = ''; save(); render();
+    // ---------- SCOREBOARD ----------
+    let activeTab = 'ee';
+
+    function showTab(tab, btn) {
+      activeTab = tab;
+      document.querySelectorAll('.score-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderBoard();
     }
-    function remP(i) { players.splice(i, 1); players.forEach((p, j) => p.key = KEYS[j] || String(j + 1)); save(); render() }
-    function save() { sessionStorage.setItem('players', JSON.stringify(players)) }
-    function render() {
-      document.getElementById('tags').innerHTML = players.map((p, i) =>
-        `<div class="tag"><span class="kb">${p.key}</span>${p.name}<span class="x" onclick="remP(${i})">×</span></div>`).join('');
-    }
-    function go(url) {
-      if (url !== 'elephant-eye.html' && url !== 'kana-mutti.html' && url !== 'papaya-seeds.html' && players.length < 2) {
-        const w = document.getElementById('warn'); w.style.display = 'block';
-        setTimeout(() => w.style.display = 'none', 3000); return;
+
+    function renderBoard() {
+      const board = document.getElementById('scoreBoard');
+      try {
+        const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
+        const players = Object.values(allScores);
+
+        let filtered;
+        if (activeTab === 'ee') {
+          filtered = players.filter(p => (p.ee_plays || 0) > 0);
+          filtered.sort((a, b) => (b.ee_best || 0) - (a.ee_best || 0));
+        } else {
+          filtered = players.filter(p => (p.km_plays || 0) > 0);
+          filtered.sort((a, b) => (b.km_wins || 0) - (a.km_wins || 0));
+        }
+
+        if (filtered.length === 0) {
+          board.innerHTML = '<div class="score-empty">No scores yet — play a game first! 🎮</div>';
+          return;
+        }
+
+        const medals = ['🥇', '🥈', '🥉'];
+        let html = '';
+        filtered.forEach((p, i) => {
+          const scoreClass = activeTab === 'ee' ? 'sb-score-ee' : 'sb-score-km';
+          const scoreText = activeTab === 'ee'
+            ? 'Best: ' + (p.ee_best || 0) + '%'
+            : (p.km_wins || 0) + '/' + (p.km_plays || 0) + ' wins';
+          const playsText = activeTab === 'ee'
+            ? (p.ee_plays || 0) + ' play' + ((p.ee_plays || 0) !== 1 ? 's' : '')
+            : '';
+
+          html += '<div class="sb-row">';
+          html += '<span class="sb-rank">' + (medals[i] || '#' + (i + 1)) + '</span>';
+          html += '<span class="sb-name">' + (p.name || 'Unknown') + '</span>';
+          html += '<span class="sb-score ' + scoreClass + '">' + scoreText + '</span>';
+          if (playsText) html += '<span class="sb-plays">' + playsText + '</span>';
+          html += '</div>';
+        });
+
+        // Copy own code button
+        html += '<div style="margin-top:14px;text-align:center">';
+        html += '<button onclick="copyMyCode()" style="font-family:Nunito,sans-serif;font-weight:700;border:2px solid var(--border);background:rgba(251,191,36,.08);color:var(--yellow);border-radius:10px;padding:8px 20px;font-size:12px;cursor:pointer;transition:.2s">📋 Copy My Score Code to Share</button>';
+        html += '<div id="copyMsg" style="font-size:11px;color:var(--green);margin-top:6px;display:none">✅ Copied! Send this to your friends</div>';
+        html += '</div>';
+
+        board.innerHTML = html;
+      } catch (e) {
+        board.innerHTML = '<div class="score-empty">No scores yet — play a game first! 🎮</div>';
       }
-      save(); window.location.href = url;
     }
+
+    function copyMyCode() {
+      try {
+        const allScores = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
+        if (Object.keys(allScores).length === 0) { alert('No scores to share yet! Play a game first.'); return; }
+        const code = btoa(unescape(encodeURIComponent(JSON.stringify(allScores))));
+        navigator.clipboard.writeText(code).then(() => {
+          const msg = document.getElementById('copyMsg');
+          msg.style.display = 'block';
+          setTimeout(() => msg.style.display = 'none', 4000);
+        }).catch(() => {
+          prompt('Copy this score code and send to friends:', code);
+        });
+      } catch (e) { alert('Error creating code'); }
+    }
+
+    function importCode() {
+      const input = document.getElementById('codeInput');
+      const msg = document.getElementById('importMsg');
+      const code = input.value.trim();
+      if (!code) { showMsg(msg, '⚠️ Paste a score code first!', 'var(--red)'); return; }
+
+      try {
+        const incoming = JSON.parse(decodeURIComponent(escape(atob(code))));
+        const existing = JSON.parse(localStorage.getItem('nygames_scores') || '{}');
+        let added = 0;
+
+        for (const [key, val] of Object.entries(incoming)) {
+          if (!val || !val.name) continue;
+          const prev = existing[key];
+          if (!prev) {
+            existing[key] = val;
+            added++;
+          } else {
+            // Merge: keep best scores
+            let changed = false;
+            if ((val.ee_best || 0) > (prev.ee_best || 0)) { prev.ee_best = val.ee_best; changed = true; }
+            if ((val.ee_plays || 0) > (prev.ee_plays || 0)) { prev.ee_plays = val.ee_plays; changed = true; }
+            if ((val.km_wins || 0) > (prev.km_wins || 0)) { prev.km_wins = val.km_wins; changed = true; }
+            if ((val.km_plays || 0) > (prev.km_plays || 0)) { prev.km_plays = val.km_plays; changed = true; }
+            if (changed) added++;
+          }
+        }
+
+        localStorage.setItem('nygames_scores', JSON.stringify(existing));
+        input.value = '';
+        showMsg(msg, '✅ Imported! ' + added + ' player(s) updated', 'var(--green)');
+        renderBoard();
+      } catch (e) {
+        showMsg(msg, '❌ Invalid code — check and try again', 'var(--red)');
+      }
+    }
+
+    function showMsg(el, text, color) {
+      el.textContent = text;
+      el.style.color = color;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    // Load on page open
+    renderBoard();
 
     // BG particles
     const bg = document.getElementById('bgParticles');
