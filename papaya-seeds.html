@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🥭 Papaya Seeds Guess</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg1:#fff1b5; --bg2:#ffb96f; --bg3:#ff8e6e; --leaf:#2d8f57;
+      --card:#fff8ec; --ink:#5b2e14; --accent:#8f0d13; --gold:#ffd356; --brown:#7a4a21;
+    }
+    body{
+      min-height:100vh; font-family:'Nunito',sans-serif; color:var(--ink);
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,.35), transparent 18%),
+        radial-gradient(circle at 80% 10%, rgba(255,243,193,.5), transparent 20%),
+        linear-gradient(180deg,var(--bg1),var(--bg2) 52%,var(--bg3));
+      overflow-x:hidden;
+    }
+    .pattern-top,.pattern-bottom{
+      height:28px;
+      background:
+        linear-gradient(90deg,#7f0830 0 8%, #d8b500 8% 10%, #21a86d 10% 12%, #7f0830 12% 20%,
+        #f6d34d 20% 21%, #7f0830 21% 29%, #d8b500 29% 31%, #21a86d 31% 33%, #7f0830 33% 41%,
+        #f6d34d 41% 42%, #7f0830 42% 50%, #d8b500 50% 52%, #21a86d 52% 54%, #7f0830 54% 62%,
+        #f6d34d 62% 63%, #7f0830 63% 71%, #d8b500 71% 73%, #21a86d 73% 75%, #7f0830 75% 83%,
+        #f6d34d 83% 84%, #7f0830 84% 92%, #d8b500 92% 94%, #21a86d 94% 96%, #7f0830 96% 100%);
+      box-shadow:0 3px 0 rgba(0,0,0,.12) inset, 0 -3px 0 rgba(0,0,0,.08) inset;
+    }
+    .wrap{max-width:1180px;margin:0 auto;padding:20px 22px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+    .title h1{font-family:'Baloo 2',cursive;font-size:clamp(32px,4vw,54px);line-height:1;color:#7f0830;text-shadow:0 2px 0 rgba(255,255,255,.35)}
+    .title p{font-weight:700;font-size:15px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button,.btn{
+      border:none;border-radius:16px;padding:12px 18px;font:800 14px 'Nunito',sans-serif;cursor:pointer;
+      transition:.2s transform,.2s box-shadow,.2s opacity;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px
+    }
+    button:hover,.btn:hover{transform:translateY(-2px)}
+    .btn-home{background:rgba(127,8,48,.12);color:#7f0830}
+    .btn-primary{background:linear-gradient(135deg,#8f0d13,#c0392b);color:#fff;box-shadow:0 10px 24px rgba(143,13,19,.2)}
+    .btn-secondary{background:linear-gradient(135deg,#ffd356,#f7a928);color:#5b2e14}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+    .card{
+      background:rgba(255,248,236,.92); border:2px solid rgba(122,74,33,.12); border-radius:28px;
+      box-shadow:0 16px 40px rgba(95,50,20,.14); padding:22px;
+      backdrop-filter:blur(4px);
+    }
+    .hero{
+      position:relative; min-height:560px; overflow:hidden;
+      background:
+        radial-gradient(circle at 25% 18%, rgba(255,255,255,.45), transparent 16%),
+        linear-gradient(180deg, rgba(255,230,153,.7), rgba(255,183,113,.65));
+    }
+    .hint-pill{
+      position:absolute;top:18px;left:18px;background:#8f0d13;color:#fff;padding:10px 14px;border-radius:999px;
+      font-weight:800;font-size:14px;box-shadow:0 8px 20px rgba(143,13,19,.22)
+    }
+    .guess-display{
+      position:absolute;top:18px;right:18px;background:#fff;color:#8f0d13;padding:10px 14px;border-radius:18px;
+      font-weight:800;font-size:14px;border:2px solid rgba(143,13,19,.12);min-width:180px;text-align:center
+    }
+    .scene{
+      height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; padding-top:24px;
+    }
+    .papaya-wrap{width:min(92%,620px)}
+    .papaya-shadow{filter:drop-shadow(0 18px 28px rgba(90,44,18,.22))}
+    .seed-count{font-family:'Baloo 2',cursive;font-size:clamp(36px,7vw,84px);color:#8f0d13;line-height:1}
+    .subtle{font-size:14px;font-weight:700;opacity:.82}
+    .form h2,.score h2{font-family:'Baloo 2',cursive;font-size:28px;margin-bottom:10px;color:#7f0830}
+    .form p,.score p{font-size:14px;line-height:1.55}
+    .stack{display:grid;gap:12px;margin-top:16px}
+    input{
+      width:100%;padding:14px 16px;border-radius:16px;border:2px solid #ecd2af;background:#fffdf8;
+      font:700 15px 'Nunito',sans-serif;color:#5b2e14;outline:none
+    }
+    input:focus{border-color:#f0a72d;box-shadow:0 0 0 4px rgba(240,167,45,.15)}
+    .small{font-size:12px;opacity:.8}
+    .status{
+      margin-top:12px;padding:12px 14px;border-radius:16px;background:#fff4cf;border:1px solid #f1d17f;
+      font-weight:700;font-size:14px;display:none
+    }
+    .status.show{display:block}
+    table{width:100%;border-collapse:collapse;margin-top:12px;background:#fffdf8;border-radius:18px;overflow:hidden}
+    th,td{padding:12px 10px;text-align:left;font-size:14px}
+    th{background:#fff0d2;color:#7f0830}
+    tr:nth-child(even) td{background:#fff8eb}
+    .pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#ffe6a4;font-weight:800;font-size:12px}
+    .footer-note{margin-top:14px;font-size:13px;line-height:1.5}
+    .modal{
+      position:fixed;inset:0;background:rgba(63,22,8,.48);display:flex;align-items:center;justify-content:center;
+      padding:18px;z-index:50;backdrop-filter:blur(6px)
+    }
+    .modal-card{
+      width:min(460px,100%);background:linear-gradient(180deg,#fff9ee,#ffe8ba);border-radius:28px;padding:28px;
+      box-shadow:0 24px 60px rgba(0,0,0,.24);border:2px solid rgba(122,74,33,.12)
+    }
+    .modal-card h2{font-family:'Baloo 2',cursive;font-size:34px;color:#7f0830;margin-bottom:4px}
+    .modal-card p{line-height:1.55;font-size:15px}
+    .modal-card .stack{margin-top:18px}
+    .hidden{display:none !important}
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .hero{min-height:460px}
+      .guess-display{position:static;align-self:flex-end;margin:12px 12px 0 auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="pattern-top"></div>
+  <div class="wrap">
+    <div class="header">
+      <div class="title">
+        <h1>🥭 Papaya Seeds Guess</h1>
+        <p>Enter your name, guess the number of seeds, and track every turn.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-home" href="index.html">← Home</a>
+        <button class="btn-secondary" id="resetAllBtn">Reset All Guesses</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card hero">
+        <div class="hint-pill" id="hintText">Hint: 50 – 200 seeds</div>
+        <div class="guess-display" id="currentGuessBox">No guess yet</div>
+        <div class="scene">
+          <div class="papaya-wrap papaya-shadow">
+            <svg viewBox="0 0 760 470" width="100%" aria-label="Papaya illustration">
+              <defs>
+                <linearGradient id="plateG" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#9b4e11"/>
+                  <stop offset="100%" stop-color="#6f3308"/>
+                </linearGradient>
+                <linearGradient id="papayaOuter" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#8dc63f"/>
+                  <stop offset="45%" stop-color="#d0d630"/>
+                  <stop offset="100%" stop-color="#ffaf38"/>
+                </linearGradient>
+                <linearGradient id="papayaInner" x1="0" x2="1">
+                  <stop offset="0%" stop-color="#ffcf73"/>
+                  <stop offset="100%" stop-color="#ff8b2d"/>
+                </linearGradient>
+                <radialGradient id="shine" cx="35%" cy="30%" r="55%">
+                  <stop offset="0%" stop-color="rgba(255,255,255,.75)"/>
+                  <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                </radialGradient>
+              </defs>
+
+              <ellipse cx="380" cy="410" rx="210" ry="58" fill="url(#plateG)"/>
+              <ellipse cx="380" cy="424" rx="234" ry="70" fill="#bc7636" opacity=".9"/>
+
+              <path d="M202 267
+                       C192 202, 238 145, 326 121
+                       C416 97, 534 121, 588 178
+                       C633 226, 620 299, 566 329
+                       C496 369, 308 376, 244 338
+                       C219 323, 205 298, 202 267Z" fill="url(#papayaOuter)" stroke="#6f540e" stroke-width="3"/>
+
+              <path d="M315 157
+                       C390 138, 493 156, 541 205
+                       C575 241, 565 289, 523 312
+                       C470 342, 337 343, 284 317
+                       C244 297, 236 250, 264 212
+                       C279 190, 294 171, 315 157Z" fill="url(#papayaInner)" stroke="#c16621" stroke-width="4"/>
+
+              <path d="M364 171
+                       C419 162, 492 180, 520 217
+                       C546 250, 536 294, 490 312
+                       C438 333, 343 327, 309 295
+                       C283 270, 287 220, 319 194
+                       C333 183, 346 175, 364 171Z" fill="#332112" opacity=".88"/>
+
+              <ellipse cx="292" cy="185" rx="60" ry="24" fill="url(#shine)" opacity=".24" transform="rotate(-24 292 185)"/>
+
+              <g id="seedGroup"></g>
+
+              <path d="M236 332
+                       C283 355, 433 360, 540 326" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="seed-count" id="countReveal">?</div>
+          <div class="subtle">Actual seed count stays hidden until you click <strong>Reveal Winner</strong>.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="form">
+          <h2>Player Turn</h2>
+          <p>Each player can enter a name and one guess. The latest guess is shown on the game screen.</p>
+          <div class="stack">
+            <input type="text" id="playerName" placeholder="Enter player name" maxlength="24" />
+            <input type="number" id="playerGuess" placeholder="Enter guess" min="1" max="500" />
+            <button class="btn-primary" id="saveGuessBtn">Save Guess</button>
+            <button class="btn-secondary" id="revealBtn">Reveal Winner</button>
+          </div>
+          <div class="status" id="statusBox"></div>
+          <p class="footer-note"><span class="pill">Hint</span> Set the seed range or actual answer in the code. Right now the hint is <strong>50–200</strong>.</p>
+        </div>
+
+        <div class="score" style="margin-top:20px">
+          <h2>Saved Guesses</h2>
+          <p>These guesses are stored in this browser using local storage.</p>
+          <div id="tableWrap"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="pattern-bottom"></div>
+
+  <div class="modal" id="startModal">
+    <div class="modal-card">
+      <h2>Start Game</h2>
+      <p>Ask each team member to type their name before entering a guess. You can use this on one computer for turn-by-turn play, or on many computers if you connect it to a shared online sheet or database.</p>
+      <div class="stack">
+        <input type="text" id="startName" placeholder="Enter first player name" maxlength="24" />
+        <button class="btn-primary" id="startBtn">Start Playing</button>
+      </div>
+      <p class="small" style="margin-top:10px">Names and guesses are saved only on this device unless you add shared storage.</p>
+    </div>
+  </div>
+
+  <script>
+    const GAME_KEY = 'papayaSeedsGame_v1';
+    const CONFIG = {
+      actualSeedCount: 137,
+      hintMin: 50,
+      hintMax: 200
+    };
+
+    const state = JSON.parse(localStorage.getItem(GAME_KEY) || '{"guesses":[]}');
+
+    const hintText = document.getElementById('hintText');
+    const currentGuessBox = document.getElementById('currentGuessBox');
+    const countReveal = document.getElementById('countReveal');
+    const statusBox = document.getElementById('statusBox');
+    const tableWrap = document.getElementById('tableWrap');
+    const playerName = document.getElementById('playerName');
+    const playerGuess = document.getElementById('playerGuess');
+    const seedGroup = document.getElementById('seedGroup');
+    const startModal = document.getElementById('startModal');
+    const startName = document.getElementById('startName');
+
+    hintText.textContent = `Hint: ${CONFIG.hintMin} – ${CONFIG.hintMax} seeds`;
+
+    function saveState(){
+      localStorage.setItem(GAME_KEY, JSON.stringify(state));
+    }
+
+    function showStatus(msg){
+      statusBox.textContent = msg;
+      statusBox.classList.add('show');
+    }
+
+    function hideStatus(){
+      statusBox.classList.remove('show');
+    }
+
+    function renderSeeds(){
+      const totalDots = 48;
+      let html = '';
+      for(let i=0;i<totalDots;i++){
+        const x = 330 + Math.random()*165;
+        const y = 188 + Math.random()*112;
+        const rx = 6 + Math.random()*4;
+        const ry = 7 + Math.random()*5;
+        const rot = Math.random()*360;
+        html += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="#20140c" opacity="${(0.78+Math.random()*0.22).toFixed(2)}" transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+      }
+      seedGroup.innerHTML = html;
+    }
+
+    function renderCurrentGuess(){
+      if(!state.guesses.length){
+        currentGuessBox.textContent = 'No guess yet';
+        return;
+      }
+      const last = state.guesses[state.guesses.length - 1];
+      currentGuessBox.innerHTML = `<strong>${escapeHtml(last.name)}</strong><br>Guess: ${last.guess}`;
+    }
+
+    function renderTable(){
+      if(!state.guesses.length){
+        tableWrap.innerHTML = '<p class="small" style="margin-top:12px">No guesses saved yet.</p>';
+        return;
+      }
+
+      const rows = state.guesses.map((g, i) => {
+        const diff = Math.abs(CONFIG.actualSeedCount - Number(g.guess));
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${escapeHtml(g.name)}</td>
+          <td>${g.guess}</td>
+          <td>${g.time}</td>
+          <td>${countReveal.textContent === '?' ? 'Hidden' : diff}</td>
+        </tr>`;
+      }).join('');
+
+      tableWrap.innerHTML = `<table>
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Guess</th><th>Time</th><th>Difference</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[s]));
+    }
+
+    function submitGuess(){
+      hideStatus();
+      const name = playerName.value.trim();
+      const guess = Number(playerGuess.value);
+
+      if(!name){
+        showStatus('Please enter a player name.');
+        return;
+      }
+      if(!Number.isFinite(guess) || guess < 1){
+        showStatus('Please enter a valid guess.');
+        return;
+      }
+
+      const item = {
+        name,
+        guess,
+        time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+      };
+
+      state.guesses.push(item);
+      saveState();
+      renderCurrentGuess();
+      renderTable();
+      showStatus(`Saved: ${name} guessed ${guess}.`);
+      playerGuess.value = '';
+      playerName.focus();
+    }
+
+    function revealWinner(){
+      if(!state.guesses.length){
+        showStatus('No guesses saved yet.');
+        return;
+      }
+      countReveal.textContent = CONFIG.actualSeedCount;
+      const sorted = [...state.guesses].sort((a,b) =>
+        Math.abs(a.guess - CONFIG.actualSeedCount) - Math.abs(b.guess - CONFIG.actualSeedCount)
+      );
+      const winner = sorted[0];
+      const diff = Math.abs(winner.guess - CONFIG.actualSeedCount);
+      showStatus(`Winner: ${winner.name} with ${winner.guess}. Difference: ${diff}.`);
+      renderTable();
+    }
+
+    function resetAll(){
+      if(!confirm('Clear all saved names and guesses on this device?')) return;
+      state.guesses = [];
+      countReveal.textContent = '?';
+      saveState();
+      renderCurrentGuess();
+      renderTable();
+      showStatus('All guesses cleared on this device.');
+    }
+
+    document.getElementById('saveGuessBtn').addEventListener('click', submitGuess);
+    document.getElementById('revealBtn').addEventListener('click', revealWinner);
+    document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+
+    playerGuess.addEventListener('keydown', e => { if(e.key === 'Enter') submitGuess(); });
+    playerName.addEventListener('keydown', e => { if(e.key === 'Enter') submitGuess(); });
+    startName.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('startBtn').click(); });
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      const name = startName.value.trim();
+      if(!name){
+        startName.focus();
+        return;
+      }
+      playerName.value = name;
+      startModal.classList.add('hidden');
+      playerGuess.focus();
+    });
+
+    renderSeeds();
+    renderCurrentGuess();
+    renderTable();
+  </script>
+</body>
+</html>

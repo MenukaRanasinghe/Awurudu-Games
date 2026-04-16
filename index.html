@@ -364,6 +364,13 @@
         <p>Characters walk around chairs. Music stops — grab a chair FAST! Last one standing wins!</p>
         <span class="arrow">→</span>
       </div>
+      <div class="game g5" onclick="go('papaya-seeds.html')">
+        <span class="badge">Solo / Turns</span>
+        <div class="icon">🥭</div>
+        <h3>Papaya Seeds</h3>
+        <p>Guess how many seeds are inside the papaya. Closest wins!</p>
+        <span class="arrow">→</span>
+      </div>
     </div>
 
     <div class="footer">🎆 Happy New Year! — Best played on a computer with keyboard</div>
@@ -389,7 +396,7 @@
         `<div class="tag"><span class="kb">${p.key}</span>${p.name}<span class="x" onclick="remP(${i})">×</span></div>`).join('');
     }
     function go(url) {
-      if (url !== 'elephant-eye.html' && url !== 'kana-mutti.html' && players.length < 2) {
+      if (url !== 'elephant-eye.html' && url !== 'kana-mutti.html' && url !== 'papaya-seeds.html' && players.length < 2) {
         const w = document.getElementById('warn'); w.style.display = 'block';
         setTimeout(() => w.style.display = 'none', 3000); return;
       }
