@@ -21,7 +21,8 @@
             height: 100vh;
             width: 100vw;
             user-select: none;
-            position: relative
+            position: relative;
+            cursor: none;
         }
 
         /* ---------- FESTIVE BACKGROUND ---------- */
@@ -46,7 +47,6 @@
             box-shadow: 0 0 70px rgba(255, 220, 120, .8), 0 0 140px rgba(255, 170, 80, .4)
         }
 
-        /* Bunting flags across the top */
         .bunting {
             position: fixed;
             top: 0;
@@ -57,7 +57,6 @@
             pointer-events: none
         }
 
-        /* Wooden beam */
         .beam {
             position: fixed;
             top: 85px;
@@ -90,7 +89,6 @@
             border-left: 2px solid #3a1e08
         }
 
-        /* Distant tree line */
         .trees-far {
             position: fixed;
             bottom: 14%;
@@ -102,7 +100,6 @@
             pointer-events: none
         }
 
-        /* Ground */
         .ground {
             position: fixed;
             bottom: 0;
@@ -129,7 +126,8 @@
             font-size: 13px;
             text-decoration: none;
             backdrop-filter: blur(6px);
-            transition: .2s
+            transition: .2s;
+            cursor: none;
         }
 
         .back:hover {
@@ -140,12 +138,13 @@
             position: relative;
             z-index: 10;
             text-align: center;
-            padding: 14px 20px 4px
+            padding: 14px 20px 4px;
+            pointer-events: none;
         }
 
         .header h1 {
             font-family: 'Baloo 2', cursive;
-            font-size: clamp(24px, 4.5vw, 38px);
+            font-size: clamp(22px, 4vw, 34px);
             font-weight: 800;
             color: #fff;
             text-shadow: 0 2px 10px rgba(120, 60, 20, .6), 0 0 20px rgba(0, 0, 0, .3);
@@ -153,7 +152,7 @@
         }
 
         .header .sub {
-            font-size: clamp(12px, 2vw, 15px);
+            font-size: clamp(11px, 1.8vw, 14px);
             color: #fff8e0;
             font-weight: 600;
             margin-top: 2px;
@@ -169,22 +168,23 @@
             display: flex;
             justify-content: space-around;
             align-items: flex-start;
-            padding: 30px 3vw 0;
-            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect x='17' y='4' width='6' height='34' rx='2' fill='%238b5a2b' stroke='%235c3712' stroke-width='1.5'/><rect x='17' y='4' width='6' height='6' fill='%23c89060'/></svg>") 20 4, pointer
+            padding: 30px 2vw 0;
+            flex-wrap: nowrap;
         }
 
         .pot-hanger {
             position: relative;
-            width: clamp(90px, 14vw, 150px);
+            width: clamp(70px, 10.5vw, 120px);
             margin-top: 0;
             transform-origin: top center;
-            animation: sway var(--dur, 3s) ease-in-out infinite;
+            animation: sway var(--dur, 1.6s) ease-in-out infinite;
             animation-delay: var(--delay, 0s);
-            transition: filter .2s
+            transition: filter .2s;
+            flex-shrink: 0;
         }
 
         .pot-hanger:hover {
-            filter: brightness(1.1) drop-shadow(0 0 12px rgba(255, 220, 120, .6))
+            filter: brightness(1.08) drop-shadow(0 0 12px rgba(255, 220, 120, .55))
         }
 
         .pot-hanger.broken {
@@ -196,15 +196,33 @@
             animation: shake .35s ease-in-out
         }
 
+        /* Winning pot gets a subtle heavier swing — the toffee's weight! */
+        .pot-hanger.winner {
+            animation: sway-heavy var(--dur-heavy, 2.1s) ease-in-out infinite;
+            animation-delay: var(--delay, 0s);
+        }
+
         @keyframes sway {
 
             0%,
             100% {
-                transform: rotate(calc(var(--amp, 4) * -1deg))
+                transform: rotate(calc(var(--amp, 8) * -1deg))
             }
 
             50% {
-                transform: rotate(calc(var(--amp, 4) * 1deg))
+                transform: rotate(calc(var(--amp, 8) * 1deg))
+            }
+        }
+
+        @keyframes sway-heavy {
+
+            0%,
+            100% {
+                transform: rotate(calc(var(--amp-heavy, 6) * -1deg)) translateY(0px);
+            }
+
+            50% {
+                transform: rotate(calc(var(--amp-heavy, 6) * 1deg)) translateY(2px);
             }
         }
 
@@ -242,7 +260,6 @@
             filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .35))
         }
 
-        /* Shards flying outward after break */
         .shard {
             position: absolute;
             pointer-events: none;
@@ -251,7 +268,6 @@
             will-change: transform
         }
 
-        /* Prize (toffee) revealed */
         .prize {
             position: absolute;
             font-size: 64px;
@@ -277,16 +293,151 @@
             }
         }
 
+        /* ---------- THE BIG WOODEN STICK (custom cursor) ---------- */
+        .stick {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            width: 28px;
+            height: 220px;
+            pointer-events: none;
+            transform-origin: 50% 18px;
+            transform: translate(-50%, -18px) rotate(-18deg);
+            transition: transform .08s linear;
+            will-change: transform;
+            filter: drop-shadow(-4px 8px 10px rgba(0, 0, 0, .45));
+        }
+
+        .stick-body {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(90deg,
+                    rgba(0, 0, 0, .35) 0%,
+                    rgba(0, 0, 0, 0) 20%,
+                    rgba(255, 255, 255, .18) 45%,
+                    rgba(0, 0, 0, 0) 70%,
+                    rgba(0, 0, 0, .3) 100%),
+                linear-gradient(180deg, #d9a066 0%, #b47840 20%, #8b5a2b 50%, #6b3f1a 80%, #4a2810 100%);
+            border-radius: 14px 14px 8px 8px;
+            box-shadow: inset 0 2px 4px rgba(255, 220, 170, .3), inset 0 -3px 6px rgba(0, 0, 0, .4);
+        }
+
+        .stick-body::before {
+            content: '';
+            position: absolute;
+            inset: 4px 4px 4px 4px;
+            background:
+                repeating-linear-gradient(180deg,
+                    transparent 0 18px,
+                    rgba(60, 30, 10, .25) 18px 19px,
+                    transparent 19px 42px,
+                    rgba(80, 40, 15, .2) 42px 43px);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .stick-grip {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 30px;
+            border-radius: 10px 10px 4px 4px;
+            background: linear-gradient(180deg, #5a2f12, #3a1e08);
+            box-shadow: inset 0 2px 3px rgba(255, 255, 255, .2), inset 0 -2px 4px rgba(0, 0, 0, .5), 0 2px 4px rgba(0, 0, 0, .4);
+        }
+
+        .stick-grip::after {
+            content: '';
+            position: absolute;
+            inset: 4px 5px;
+            background:
+                repeating-linear-gradient(90deg,
+                    rgba(0, 0, 0, .4) 0 2px,
+                    transparent 2px 5px);
+            border-radius: 4px;
+        }
+
+        .stick-tip {
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 16px;
+            border-radius: 50% 50% 40% 40%;
+            background: linear-gradient(180deg, #6b3f1a, #3a1e08);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .5);
+        }
+
+        .stick.swinging {
+            animation: stickSwing .5s cubic-bezier(.3, .1, .2, 1);
+        }
+
+        @keyframes stickSwing {
+            0% {
+                transform: translate(-50%, -18px) rotate(-85deg);
+            }
+
+            35% {
+                transform: translate(-50%, -18px) rotate(25deg);
+            }
+
+            55% {
+                transform: translate(-50%, -18px) rotate(35deg);
+            }
+
+            100% {
+                transform: translate(-50%, -18px) rotate(-18deg);
+            }
+        }
+
+        .hit-flash {
+            position: fixed;
+            pointer-events: none;
+            z-index: 50;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 200, .9), rgba(255, 200, 80, .5) 40%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            animation: hitFlash .5s ease-out forwards;
+        }
+
+        @keyframes hitFlash {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: .8;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.6);
+                opacity: 0;
+            }
+        }
+
         /* ---------- POPUP ---------- */
         .popup {
             position: fixed;
             inset: 0;
-            z-index: 60;
+            z-index: 1000;
             display: none;
             align-items: center;
             justify-content: center;
             background: rgba(0, 0, 0, .55);
-            backdrop-filter: blur(10px)
+            backdrop-filter: blur(10px);
+            cursor: none;
         }
 
         .popup.show {
@@ -375,15 +526,18 @@
             z-index: 10;
             font-size: 13px;
             color: #fff;
-            background: rgba(0, 0, 0, .45);
+            background: rgba(0, 0, 0, .55);
             border: 1px solid rgba(255, 255, 255, .25);
             border-radius: 12px;
-            padding: 8px 18px;
+            padding: 9px 20px;
             backdrop-filter: blur(6px);
             animation: fadeUp .8s .5s both;
             font-weight: 600;
             white-space: nowrap;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, .3)
+            text-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+            pointer-events: none;
+            max-width: 90vw;
+            text-align: center;
         }
 
         @keyframes fadeUp {
@@ -395,6 +549,36 @@
             to {
                 opacity: 1;
                 transform: translateX(-50%) translateY(0)
+            }
+        }
+
+        .floater {
+            position: fixed;
+            z-index: 60;
+            pointer-events: none;
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            font-size: 34px;
+            color: #fff;
+            text-shadow: 0 3px 10px rgba(0, 0, 0, .7), 0 0 16px rgba(255, 120, 50, .6);
+            transform: translate(-50%, -50%);
+            animation: floaterRise 1.1s ease-out forwards;
+        }
+
+        @keyframes floaterRise {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -30%) scale(.5);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -60%) scale(1.1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -160%) scale(1);
             }
         }
 
@@ -414,6 +598,27 @@
             100% {
                 opacity: 0;
                 transform: translateY(100vh) rotate(var(--r, 720deg))
+            }
+        }
+
+        @media (max-width: 700px) {
+            .pot-hanger {
+                width: clamp(58px, 11vw, 90px);
+            }
+
+            .stick {
+                width: 22px;
+                height: 170px;
+            }
+
+            .stick-grip {
+                width: 26px;
+                height: 24px;
+            }
+
+            .stick-tip {
+                width: 24px;
+                height: 13px;
             }
         }
     </style>
@@ -439,12 +644,19 @@
     <a class="back" href="index.html">← Home</a>
     <div class="header">
         <h1>🏺 Kana Mutti Challenge 🍬</h1>
-        <div class="sub">Break a pot to find the hidden toffee — only ONE holds the prize!</div>
+        <div class="sub">Pick a pot and smash it — only ONE hides the toffee!</div>
     </div>
 
     <div class="scene" id="scene"></div>
 
-    <div class="tip" id="tip">💡 Pick any pot — the toffee's location is a secret!</div>
+    <!-- The big wooden stick (custom cursor) -->
+    <div class="stick" id="stick">
+        <div class="stick-grip"></div>
+        <div class="stick-body"></div>
+        <div class="stick-tip"></div>
+    </div>
+
+    <div class="tip" id="tip">💡 The toffee makes one pot swing a little heavier... watch closely!</div>
 
     <div class="popup" id="pop">
         <div class="card">
@@ -458,57 +670,108 @@
 
     <script>
         const scene = document.getElementById('scene');
-        const NUM_POTS = 5;
-        let winnerIdx = -1, gameOver = false;
+        const stick = document.getElementById('stick');
+        const NUM_POTS = 7;
+        let winnerIdx = -1;
+        let gameOver = false;
+        let isSwinging = false;
 
-        // SVG pot template — orange terracotta clay with rope netting
+        // SVG pot — bulbous terracotta clay pot hanging from rope (matches reference image)
         function potSVG(id) {
             return `
-<svg class="pot-svg" viewBox="0 0 140 220" xmlns="http://www.w3.org/2000/svg">
+<svg class="pot-svg" viewBox="0 0 160 240" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="pg${id}" cx="35%" cy="40%" r="70%">
-      <stop offset="0%" stop-color="#f5a657"/>
-      <stop offset="35%" stop-color="#d97827"/>
-      <stop offset="75%" stop-color="#a94d14"/>
-      <stop offset="100%" stop-color="#6b2f08"/>
+    <!-- Main body gradient: light top-left highlight, deep shadow bottom-right -->
+    <radialGradient id="pg${id}" cx="38%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#f4a766"/>
+      <stop offset="25%" stop-color="#e08940"/>
+      <stop offset="55%" stop-color="#c06820"/>
+      <stop offset="85%" stop-color="#8a4410"/>
+      <stop offset="100%" stop-color="#5a2a08"/>
     </radialGradient>
-    <linearGradient id="rm${id}" x1="0%" y1="0%" x2="0%" y2="100%">
+    <!-- Neck gradient (darker band around the narrow part) -->
+    <linearGradient id="nk${id}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8a4410"/>
+      <stop offset="50%" stop-color="#c06820"/>
+      <stop offset="100%" stop-color="#a05418"/>
+    </linearGradient>
+    <!-- Rope texture gradient -->
+    <linearGradient id="rp${id}" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#5c3712"/>
-      <stop offset="100%" stop-color="#8b5a2b"/>
+      <stop offset="50%" stop-color="#a87445"/>
+      <stop offset="100%" stop-color="#5c3712"/>
     </linearGradient>
   </defs>
-  <g stroke="#6b4423" stroke-width="2" fill="none" stroke-linecap="round">
-    <line x1="70" y1="0" x2="32" y2="80"/>
-    <line x1="70" y1="0" x2="70" y2="72"/>
-    <line x1="70" y1="0" x2="108" y2="80"/>
-    <path d="M32 80 Q70 95 108 80" stroke-dasharray="4 3"/>
+
+  <!-- Top knot where ropes meet -->
+  <ellipse cx="80" cy="6" rx="4" ry="3" fill="#4a2810"/>
+
+  <!-- Three rope strands converging from top to pot neck -->
+  <g fill="none" stroke-linecap="round">
+    <!-- Left rope -->
+    <path d="M 80 6 Q 60 40 45 82" stroke="#6b4018" stroke-width="3"/>
+    <path d="M 80 6 Q 60 40 45 82" stroke="url(#rp${id})" stroke-width="2" opacity=".8"/>
+    <!-- Right rope -->
+    <path d="M 80 6 Q 100 40 115 82" stroke="#6b4018" stroke-width="3"/>
+    <path d="M 80 6 Q 100 40 115 82" stroke="url(#rp${id})" stroke-width="2" opacity=".8"/>
+    <!-- Middle rope (behind pot, shorter visible segment) -->
+    <path d="M 80 6 L 80 78" stroke="#6b4018" stroke-width="3"/>
+    <path d="M 80 6 L 80 78" stroke="url(#rp${id})" stroke-width="2" opacity=".8"/>
   </g>
-  <ellipse cx="70" cy="78" rx="40" ry="10" fill="#3a1e08"/>
-  <ellipse cx="70" cy="76" rx="36" ry="7" fill="#1a0a02"/>
-  <path d="M 36 82 Q 20 90 18 120 Q 16 170 70 188 Q 124 170 122 120 Q 120 90 104 82 L 96 85 Q 108 92 110 120 Q 112 162 70 178 Q 28 162 30 120 Q 32 92 44 85 Z"
+
+  <!-- Rope tie wrapping around the neck -->
+  <path d="M 42 82 Q 80 96 118 82" stroke="#4a2810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M 44 84 Q 80 94 116 84" stroke="#8b5527" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-dasharray="3 2"/>
+
+  <!-- Pot NECK (narrow band) -->
+  <path d="M 52 78 Q 50 85 52 94 L 108 94 Q 110 85 108 78 Z" fill="url(#nk${id})" stroke="#3a1e08" stroke-width="1.2"/>
+
+  <!-- Dark MOUTH/RIM at top of pot (the opening) -->
+  <ellipse cx="80" cy="78" rx="28" ry="6" fill="#2a1408"/>
+  <ellipse cx="80" cy="77" rx="24" ry="3.5" fill="#120804"/>
+  <!-- subtle rim highlight on front edge -->
+  <path d="M 56 80 Q 80 84 104 80" stroke="#c06820" stroke-width="1" fill="none" opacity=".6"/>
+
+  <!-- Main BULBOUS POT BODY - round/spherical like the reference -->
+  <path d="M 52 94
+           Q 18 100 14 145
+           Q 12 195 80 212
+           Q 148 195 146 145
+           Q 142 100 108 94
+           Z"
         fill="url(#pg${id})" stroke="#3a1e08" stroke-width="1.5"/>
-  <ellipse cx="48" cy="110" rx="5" ry="18" fill="#fff" opacity="0.22"/>
-  <ellipse cx="42" cy="135" rx="3" ry="10" fill="#fff" opacity="0.15"/>
-  <path d="M 92 150 Q 100 160 96 172" stroke="#3a1e08" stroke-width="1" fill="none" opacity=".5"/>
-  <path d="M 55 160 Q 60 168 58 175" stroke="#3a1e08" stroke-width="1" fill="none" opacity=".4"/>
-  <rect x="67" y="78" width="6" height="14" fill="url(#rm${id})" rx="1"/>
+
+  <!-- Glossy highlight on upper-left of body -->
+  <ellipse cx="42" cy="130" rx="10" ry="28" fill="#ffd9a0" opacity="0.28" transform="rotate(-12 42 130)"/>
+  <ellipse cx="38" cy="155" rx="4" ry="14" fill="#fff" opacity="0.18" transform="rotate(-8 38 155)"/>
+
+  <!-- Subtle shadow/curve on bottom-right -->
+  <path d="M 100 180 Q 130 175 140 150" stroke="#3a1e08" stroke-width="1.2" fill="none" opacity=".35"/>
+  <path d="M 60 200 Q 80 208 100 200" stroke="#3a1e08" stroke-width="1" fill="none" opacity=".3"/>
+
+  <!-- Tiny texture specks for clay look -->
+  <circle cx="70" cy="160" r="1" fill="#3a1e08" opacity=".4"/>
+  <circle cx="95" cy="145" r=".8" fill="#3a1e08" opacity=".35"/>
+  <circle cx="55" cy="175" r="1" fill="#3a1e08" opacity=".3"/>
 </svg>`;
         }
 
         function buildPots() {
             scene.innerHTML = '';
-            const swayParams = [
-                { amp: 4, dur: 3.2, delay: 0 },
-                { amp: 5, dur: 2.8, delay: -0.5 },
-                { amp: 3.5, dur: 3.6, delay: -1.2 },
-                { amp: 4.5, dur: 3.0, delay: -0.8 },
-                { amp: 5.5, dur: 2.6, delay: -1.6 }
-            ];
-            // Shuffle sway parameters for unpredictability
-            for (let i = swayParams.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [swayParams[i], swayParams[j]] = [swayParams[j], swayParams[i]];
+
+            // All pots swing FAST with varied amplitudes & random phase offsets
+            const swayParams = [];
+            for (let i = 0; i < NUM_POTS; i++) {
+                swayParams.push({
+                    amp: 7 + Math.random() * 5,          // 7–12 degrees
+                    dur: 1.2 + Math.random() * 0.7,      // 1.2–1.9s (FAST)
+                    delay: -Math.random() * 2.5          // random phase offset
+                });
             }
+
+            // Pick winning pot randomly
+            winnerIdx = Math.floor(Math.random() * NUM_POTS);
+
             for (let i = 0; i < NUM_POTS; i++) {
                 const p = swayParams[i];
                 const el = document.createElement('div');
@@ -516,35 +779,88 @@
                 el.style.setProperty('--amp', p.amp);
                 el.style.setProperty('--dur', p.dur + 's');
                 el.style.setProperty('--delay', p.delay + 's');
+
+                // Subtle "heavier" hint for the winning pot
+                if (i === winnerIdx) {
+                    el.classList.add('winner');
+                    el.style.setProperty('--amp-heavy', p.amp * 0.6);          // swings less
+                    el.style.setProperty('--dur-heavy', (p.dur * 1.4) + 's');  // swings slower
+                }
+
                 el.innerHTML = potSVG(i);
-                el.addEventListener('click', () => breakPot(el, i));
+                el.dataset.idx = i;
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    tryBreakPot(el, i);
+                });
                 scene.appendChild(el);
             }
-            // Pick winning pot randomly AFTER building (invisible to player)
-            winnerIdx = Math.floor(Math.random() * NUM_POTS);
+
             gameOver = false;
         }
 
-        function breakPot(el, idx) {
-            if (gameOver) return;
-            gameOver = true;
+        // Swing the stick (plays animation + hit flash at impact point)
+        function swingStick(hitX, hitY, onImpact) {
+            if (isSwinging) return;
+            isSwinging = true;
+            stick.classList.remove('swinging');
+            // Force reflow so the animation restarts
+            void stick.offsetWidth;
+            stick.classList.add('swinging');
+
+            // Impact happens ~35% through the swing
+            setTimeout(() => {
+                const flash = document.createElement('div');
+                flash.className = 'hit-flash';
+                flash.style.left = hitX + 'px';
+                flash.style.top = hitY + 'px';
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 520);
+
+                if (onImpact) onImpact();
+            }, 175);
+
+            setTimeout(() => {
+                stick.classList.remove('swinging');
+                isSwinging = false;
+            }, 520);
+        }
+
+        function tryBreakPot(el, idx) {
+            if (gameOver || isSwinging || el.classList.contains('broken')) return;
+            gameOver = true;  // One shot — game ends on this click
+
+            const rect = el.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height * 0.55;
+
+            swingStick(cx, cy, () => {
+                if (idx === winnerIdx) {
+                    // 🎯 Won — broke the winning pot!
+                    breakPot(el, idx, true);
+                } else {
+                    // Wrong pot — smash it, then reveal the winner
+                    breakPot(el, idx, false);
+                    setTimeout(() => revealWinnerAndLose(), 900);
+                }
+            });
+        }
+
+        function breakPot(el, idx, isWinner) {
             el.classList.add('shaking');
 
-            // Freeze all other pots' swaying briefly for drama
             setTimeout(() => {
-                // Get pot position before removing
                 const rect = el.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height * 0.65;
 
-                // Explode into shards
                 el.classList.add('broken');
-                el.querySelector('.pot-svg').style.display = 'none';
+                const svg = el.querySelector('.pot-svg');
+                if (svg) svg.style.display = 'none';
                 createShards(cx, cy);
 
-                // Reveal contents
-                if (idx === winnerIdx) {
-                    // Drop toffee!
+                if (isWinner) {
+                    // 🍬 Drop toffee!
                     const prize = document.createElement('div');
                     prize.className = 'prize';
                     prize.textContent = '🍬';
@@ -557,23 +873,37 @@
                     for (let i = 0; i < 8; i++) {
                         const d = document.createElement('div');
                         d.style.cssText = 'position:fixed;z-index:6;pointer-events:none;width:12px;height:12px;border-radius:50%;background:rgba(180,150,100,.6);';
-                        d.style.left = cx + 'px'; d.style.top = cy + 'px';
+                        d.style.left = cx + 'px';
+                        d.style.top = cy + 'px';
                         document.body.appendChild(d);
-                        const ang = Math.random() * Math.PI * 2, sp = 20 + Math.random() * 40;
+                        const ang = Math.random() * Math.PI * 2,
+                            sp = 20 + Math.random() * 40;
                         d.animate([
                             { transform: 'translate(-50%,-50%) scale(1)', opacity: .8 },
                             { transform: `translate(calc(-50% + ${Math.cos(ang) * sp}px), calc(-50% + ${Math.sin(ang) * sp - 30}px)) scale(2)`, opacity: 0 }
                         ], { duration: 700, easing: 'ease-out', fill: 'forwards' });
                         setTimeout(() => d.remove(), 800);
                     }
-                    setTimeout(() => showResult(false), 700);
                 }
-            }, 350);
+            }, 180);
+        }
+
+        function revealWinnerAndLose() {
+            const pots = document.querySelectorAll('.pot-hanger');
+            pots.forEach((p, i) => {
+                if (i === winnerIdx && !p.classList.contains('broken')) {
+                    p.style.filter = 'drop-shadow(0 0 20px gold) drop-shadow(0 0 30px orange)';
+                    p.style.animationDuration = '0.6s';
+                    const rect = p.getBoundingClientRect();
+                    showFloater('🍬 was here!', rect.left + rect.width / 2, rect.top + 20);
+                }
+            });
+            setTimeout(() => showResult(false), 1400);
         }
 
         function createShards(cx, cy) {
             const colors = ['#d97827', '#a94d14', '#6b2f08', '#f5a657', '#8b3c0c'];
-            for (let i = 0; i < 14; i++) {
+            for (let i = 0; i < 16; i++) {
                 const s = document.createElement('div');
                 s.className = 'shard';
                 const size = 10 + Math.random() * 18;
@@ -593,23 +923,40 @@
             }
         }
 
+        function showFloater(text, x, y) {
+            const f = document.createElement('div');
+            f.className = 'floater';
+            f.textContent = text;
+            f.style.left = x + 'px';
+            f.style.top = y + 'px';
+            document.body.appendChild(f);
+            setTimeout(() => f.remove(), 1150);
+        }
+
         function showResult(won) {
             const pop = document.getElementById('pop');
-            const e = document.getElementById('pE'), t = document.getElementById('pT'), dt = document.getElementById('pD');
+            const e = document.getElementById('pE'),
+                t = document.getElementById('pT'),
+                dt = document.getElementById('pD');
             if (won) {
-                e.textContent = '🎉'; t.textContent = 'You Won!'; t.style.color = '#2e7d32';
-                dt.textContent = 'You found the toffee! Lucky break 🍬';
-                confetti(); confetti();
+                e.textContent = '🎉';
+                t.textContent = 'You Won!';
+                t.style.color = '#2e7d32';
+                dt.textContent = 'You picked the right pot! The toffee is yours 🍬';
+                confetti();
+                confetti();
             } else {
-                e.textContent = '😅'; t.textContent = 'Empty!'; t.style.color = '#c62828';
-                dt.textContent = 'No toffee this time. The prize was in a different pot!';
+                e.textContent = '😅';
+                t.textContent = 'Wrong Pot!';
+                t.style.color = '#c62828';
+                dt.textContent = 'The toffee was in a different pot. Watch for the one that swings a bit heavier next round!';
             }
             setTimeout(() => pop.classList.add('show'), 400);
         }
 
         document.getElementById('pBtryAgain').onclick = () => {
             document.getElementById('pop').classList.remove('show');
-            document.querySelectorAll('.prize,.shard').forEach(n => n.remove());
+            document.querySelectorAll('.prize,.shard,.floater').forEach(n => n.remove());
             buildPots();
         };
         document.getElementById('pBhome').onclick = () => { window.location.href = 'index.html' };
@@ -631,9 +978,11 @@
                 d.className = 'confetti';
                 const s = Math.random() * 8 + 4;
                 Object.assign(d.style, {
-                    width: s + 'px', height: s * (Math.random() > .5 ? 1 : .5) + 'px',
+                    width: s + 'px',
+                    height: s * (Math.random() > .5 ? 1 : .5) + 'px',
                     background: c[~~(Math.random() * c.length)],
-                    left: Math.random() * 100 + 'vw', top: '-10px',
+                    left: Math.random() * 100 + 'vw',
+                    top: '-10px',
                     borderRadius: Math.random() > .5 ? '50%' : '2px',
                     '--f': (2 + Math.random() * 2) + 's',
                     '--r': (360 + Math.random() * 720) + 'deg',
@@ -644,7 +993,47 @@
             }
         }
 
-        setTimeout(() => { document.getElementById('tip').style.opacity = '0'; document.getElementById('tip').style.transition = 'opacity 1s' }, 5000);
+        // ---------- STICK FOLLOWS MOUSE ----------
+        let stickX = window.innerWidth / 2;
+        let stickY = window.innerHeight / 2;
+        let targetX = stickX, targetY = stickY;
+
+        document.addEventListener('mousemove', (e) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches[0]) {
+                targetX = e.touches[0].clientX;
+                targetY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        function moveStick() {
+            stickX += (targetX - stickX) * 0.35;
+            stickY += (targetY - stickY) * 0.35;
+            if (!isSwinging) {
+                stick.style.left = stickX + 'px';
+                stick.style.top = stickY + 'px';
+            }
+            requestAnimationFrame(moveStick);
+        }
+        moveStick();
+
+        // Click on empty space → still swing the stick (satisfying feedback)
+        document.addEventListener('click', (e) => {
+            if (gameOver || isSwinging) return;
+            if (e.target.closest('.pot-hanger') || e.target.closest('.btn') ||
+                e.target.closest('.back') || e.target.closest('.popup')) return;
+            swingStick(e.clientX, e.clientY, null);
+        });
+
+        setTimeout(() => {
+            document.getElementById('tip').style.opacity = '0';
+            document.getElementById('tip').style.transition = 'opacity 1s';
+        }, 6000);
+
         buildPots();
     </script>
 </body>
